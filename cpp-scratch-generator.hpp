@@ -237,7 +237,7 @@ inline void generate_project_json(std::ostream& out, const BlocklyGenerator& gen
             // the only sprite
             .obj_begin()
                 .p("isStage").v(false)
-                .p("name").sv("NeverGonnaGiveYouUp")
+                .p("name").sv("Sprite1")
                 .p("variables").obj_begin()
                 .end()
                 .p("lists").obj_begin()
