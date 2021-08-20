@@ -165,6 +165,8 @@ public:
     
     inline VariableDeclaration(const std::string& value_)
         : VariableDeclaration(var_name_generator.generate(), value_) {}
+    inline VariableDeclaration(const char*  value_)
+        : VariableDeclaration(var_name_generator.generate(), value_) {}
     inline VariableDeclaration(int value_)
         : VariableDeclaration(std::to_string(value_)) {}
     inline VariableDeclaration(long long value_)
