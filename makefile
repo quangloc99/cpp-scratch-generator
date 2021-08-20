@@ -1,5 +1,5 @@
 CPP=g++
-FLAGS=--std=c++17
+FLAGS=--std=c++11
 
 clean:
 	rm -rf build/*

@@ -10,7 +10,17 @@
 #include <iostream>
 #include <functional>
 #include <vector>
+#include <set>
+#include <string>
 
+
+/**
+ * A class for "more comfortable" writing json data.
+ * 
+ * This class does not really check validity.
+ * It is created just for writing json easily, for example: no need to write
+ * quoted string, adding colon, indentation...
+ */
 class StupidJsonWriter {
     struct Frame {
         enum Type { OBJECT, ARRAY };
@@ -106,80 +116,160 @@ private:
 
 
 
-std::vector<int> __scratch_global_variables;
-std::vector<int> __scratch_global_lists;
+class NameGenerator {
+    std::set<std::string> name_pool;
+    std::string name_prefix;
+    int count;
+public:
+    NameGenerator(const std::string& prefix = ""): name_prefix(prefix), count(0) {
+    }
+    std::string generate() {
+        std::string res;
+        do {
+            res = name_prefix + std::to_string(count++);
+        }  while (name_pool.count(res));
+        return res;
+    }
+    void register_name(const std::string& name) {
+        auto t = name_pool.insert(name);
+        assert(t.second);
+    }
+    void reset() {
+        name_pool.clear();
+        count = 0;
+    }
+};
+
+
+
+class VariableDeclaration {
+public:
+    static NameGenerator var_name_generator;
+    static std::vector<VariableDeclaration> variable_list;
+    static void reset() {
+        var_name_generator.reset();
+        variable_list.clear();
+    }
+    
+    const std::string name;
+    std::string value;
+    
+    inline VariableDeclaration(const std::string& name_, const std::string& value_)
+        : name(name_)
+        , value(value_)
+    {
+        variable_list.push_back(*this);
+    }
+    inline VariableDeclaration()
+        : VariableDeclaration(var_name_generator.generate(), "0") {}
+    
+    inline VariableDeclaration(const std::string& value_)
+        : VariableDeclaration(var_name_generator.generate(), value_) {}
+    inline VariableDeclaration(int value_)
+        : VariableDeclaration(std::to_string(value_)) {}
+    inline VariableDeclaration(long long value_)
+        : VariableDeclaration(std::to_string(value_)) {}
+    inline VariableDeclaration(float value_)
+        : VariableDeclaration(std::to_string(value_)) {}
+    inline VariableDeclaration(double value_)
+        : VariableDeclaration(std::to_string(value_)) {}
+    
+    inline VariableDeclaration(const std::string& name_, int value_)
+        : VariableDeclaration(name_, std::to_string(value_)) {}
+    inline VariableDeclaration(const std::string& name_, long long value_)
+        : VariableDeclaration(name_, std::to_string(value_)) {}
+    inline VariableDeclaration(const std::string& name_, float value_)
+        : VariableDeclaration(name_, std::to_string(value_)) {}
+    inline VariableDeclaration(const std::string& name_, double value_)
+        : VariableDeclaration(name_, std::to_string(value_)) {}
+};
+
+NameGenerator VariableDeclaration::var_name_generator("var_");
+std::vector<VariableDeclaration> VariableDeclaration::variable_list;
+
+void __reset_all() {
+    VariableDeclaration::reset();
+}
 
 using BlocklyGenerator = std::function<void()>;
 inline void generate_project_json(std::ostream& out, const BlocklyGenerator& generator) {
+    __reset_all();
     generator();
-    StupidJsonWriter(out)
-        .obj_begin()
-            .p("targets").arr_begin()
-                // the stage
-                .obj_begin()
-                    .p("isStage").v(true)
-                    .p("name").sv("Stage")
-                    .p("variables").obj_begin()
-                    .end()
-                    .p("lists").obj_begin()
-                    .end()
-                    .p("broadcasts").obj_begin().end()
-                    .p("blocks").obj_begin().end()
-                    .p("comments").obj_begin().end()
-                    .p("currentCustume").v(0)
-                    .p("costumes").arr_begin()
-                        // the default costume
-                        .obj_begin()
-                           .p("assetId").sv("cd21514d0531fdffb22204e0ec5ed84a")
-                           .p("name").sv("backdrop1")
-                           .p("md5ext").sv("cd21514d0531fdffb22204e0ec5ed84a.svg")
-                           .p("dataFormat").sv("svg")
-                           .p("rotationCenterX").v(240)
-                           .p("rotationCenterY").v(180)
-                        .end()
-                    .end()
-                    .p("sounds").arr_begin().end()
-                    .p("layerOrder").v(0)
-                .end()
+    StupidJsonWriter json_writer(out);
+    json_writer.obj_begin()
+        .p("targets").arr_begin()
+            // the stage
+            .obj_begin()
+                .p("isStage").v(true)
+                .p("name").sv("Stage")
+                .p("variables").obj_begin();
                 
-                // the only sprite
-                .obj_begin()
-                    .p("isStage").v(false)
-                    .p("name").sv("NeverGonnaGiveYouUp")
-                    .p("variables").obj_begin()
-                    .end()
-                    .p("lists").obj_begin()
-                    .end()
-                    .p("broadcasts").obj_begin()
-                    .end()
-                    .p("blocks").obj_begin()
-                    .end()
-                    .p("comments").obj_begin().end()
-                    .p("currentCostume").v(0)
-                    .p("costumes").arr_begin()
-                        // the default costome
-                        .obj_begin()
-                           .p("assetId").sv("bcf454acf82e4504149f7ffe07081dbc")
-                           .p("name").sv("costume1")
-                           .p("bitmapResolution").v(1)
-                           .p("md5ext").sv("bcf454acf82e4504149f7ffe07081dbc.svg")
-                           .p("dataFormat").sv("svg")
-                           .p("rotationCenterX").v(48)
-                           .p("rotationCenterY").v(50)
-                        .end()
-                    .end()
-                    .p("sounds").arr_begin().end()
-                    .p("layerOrder").v(1)
+                for (auto& var: VariableDeclaration::variable_list) {
+                    json_writer.p(var.name).arr_begin()
+                        .sv(var.name).sv(var.value)
+                    .end();
+                }
+    
+                json_writer.end()
+                .p("lists").obj_begin()
                 .end()
+                .p("broadcasts").obj_begin().end()
+                .p("blocks").obj_begin().end()
+                .p("comments").obj_begin().end()
+                .p("currentCustume").v(0)
+                .p("costumes").arr_begin()
+                    // the default costume
+                    .obj_begin()
+                       .p("assetId").sv("cd21514d0531fdffb22204e0ec5ed84a")
+                       .p("name").sv("backdrop1")
+                       .p("md5ext").sv("cd21514d0531fdffb22204e0ec5ed84a.svg")
+                       .p("dataFormat").sv("svg")
+                       .p("rotationCenterX").v(240)
+                       .p("rotationCenterY").v(180)
+                    .end()
+                .end()
+                .p("sounds").arr_begin().end()
+                .p("layerOrder").v(0)
             .end()
-            .p("monitors").arr_begin().end()
-            .p("extensions").arr_begin().end()
-            .p("meta").obj_begin()
-                // these are the default values
-                // except for agent, because I don't use any browser for this
-                .p("semver").sv("3.0.0")
-                .p("vm").sv("0.2.0-prerelease.20210812043817")
-                .p("agent").sv("")
+            
+            // the only sprite
+            .obj_begin()
+                .p("isStage").v(false)
+                .p("name").sv("NeverGonnaGiveYouUp")
+                .p("variables").obj_begin()
+                .end()
+                .p("lists").obj_begin()
+                .end()
+                .p("broadcasts").obj_begin()
+                .end()
+                .p("blocks").obj_begin()
+                .end()
+                .p("comments").obj_begin().end()
+                .p("currentCostume").v(0)
+                .p("costumes").arr_begin()
+                    // the default costome
+                    .obj_begin()
+                       .p("assetId").sv("bcf454acf82e4504149f7ffe07081dbc")
+                       .p("name").sv("costume1")
+                       .p("bitmapResolution").v(1)
+                       .p("md5ext").sv("bcf454acf82e4504149f7ffe07081dbc.svg")
+                       .p("dataFormat").sv("svg")
+                       .p("rotationCenterX").v(48)
+                       .p("rotationCenterY").v(50)
+                    .end()
+                .end()
+                .p("sounds").arr_begin().end()
+                .p("layerOrder").v(1)
             .end()
-        .end();
+        .end()
+        .p("monitors").arr_begin().end()
+        .p("extensions").arr_begin().end()
+        .p("meta").obj_begin()
+            // these are the default values
+            // except for agent, because I don't use any browser for this
+            .p("semver").sv("3.0.0")
+            .p("vm").sv("0.2.0-prerelease.20210812043817")
+            .p("agent").sv("")
+        .end()
+    .end();
 }
