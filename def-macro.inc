@@ -3,8 +3,8 @@
 * in "C++"
 */
 
-#define var VariableDeclaration
-#define auto VariableDeclaration
-#define dec_var(name, value) VariableDeclaration name(#name, value)
+#define var Variable
+#define auto Variable
+#define dec_var(name, value) Variable name(#name, value)
 
 // vim: filetype=cpp

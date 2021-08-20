@@ -142,10 +142,10 @@ public:
 
 
 
-class VariableDeclaration {
+class Variable {
 public:
     static NameGenerator var_name_generator;
-    static std::vector<VariableDeclaration> variable_list;
+    static std::vector<Variable> variable_list;
     static void reset() {
         var_name_generator.reset();
         variable_list.clear();
@@ -154,43 +154,43 @@ public:
     const std::string name;
     std::string value;
     
-    inline VariableDeclaration(const std::string& name_, const std::string& value_)
+    inline Variable(const std::string& name_, const std::string& value_)
         : name(name_)
         , value(value_)
     {
         variable_list.push_back(*this);
     }
-    inline VariableDeclaration()
-        : VariableDeclaration(var_name_generator.generate(), "0") {}
+    inline Variable()
+        : Variable(var_name_generator.generate(), "0") {}
     
-    inline VariableDeclaration(const std::string& value_)
-        : VariableDeclaration(var_name_generator.generate(), value_) {}
-    inline VariableDeclaration(const char*  value_)
-        : VariableDeclaration(var_name_generator.generate(), value_) {}
-    inline VariableDeclaration(int value_)
-        : VariableDeclaration(std::to_string(value_)) {}
-    inline VariableDeclaration(long long value_)
-        : VariableDeclaration(std::to_string(value_)) {}
-    inline VariableDeclaration(float value_)
-        : VariableDeclaration(std::to_string(value_)) {}
-    inline VariableDeclaration(double value_)
-        : VariableDeclaration(std::to_string(value_)) {}
+    inline Variable(const std::string& value_)
+        : Variable(var_name_generator.generate(), value_) {}
+    inline Variable(const char*  value_)
+        : Variable(var_name_generator.generate(), value_) {}
+    inline Variable(int value_)
+        : Variable(std::to_string(value_)) {}
+    inline Variable(long long value_)
+        : Variable(std::to_string(value_)) {}
+    inline Variable(float value_)
+        : Variable(std::to_string(value_)) {}
+    inline Variable(double value_)
+        : Variable(std::to_string(value_)) {}
     
-    inline VariableDeclaration(const std::string& name_, int value_)
-        : VariableDeclaration(name_, std::to_string(value_)) {}
-    inline VariableDeclaration(const std::string& name_, long long value_)
-        : VariableDeclaration(name_, std::to_string(value_)) {}
-    inline VariableDeclaration(const std::string& name_, float value_)
-        : VariableDeclaration(name_, std::to_string(value_)) {}
-    inline VariableDeclaration(const std::string& name_, double value_)
-        : VariableDeclaration(name_, std::to_string(value_)) {}
+    inline Variable(const std::string& name_, int value_)
+        : Variable(name_, std::to_string(value_)) {}
+    inline Variable(const std::string& name_, long long value_)
+        : Variable(name_, std::to_string(value_)) {}
+    inline Variable(const std::string& name_, float value_)
+        : Variable(name_, std::to_string(value_)) {}
+    inline Variable(const std::string& name_, double value_)
+        : Variable(name_, std::to_string(value_)) {}
 };
 
-NameGenerator VariableDeclaration::var_name_generator("var_");
-std::vector<VariableDeclaration> VariableDeclaration::variable_list;
+NameGenerator Variable::var_name_generator("var_");
+std::vector<Variable> Variable::variable_list;
 
 void __reset_all() {
-    VariableDeclaration::reset();
+    Variable::reset();
 }
 
 using BlocklyGenerator = std::function<void()>;
@@ -206,7 +206,7 @@ inline void generate_project_json(std::ostream& out, const BlocklyGenerator& gen
                 .p("name").sv("Stage")
                 .p("variables").obj_begin();
                 
-                for (auto& var: VariableDeclaration::variable_list) {
+                for (auto& var: Variable::variable_list) {
                     json_writer.p(var.name).arr_begin()
                         .sv(var.name).sv(var.value)
                     .end();
