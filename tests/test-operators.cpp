@@ -13,16 +13,22 @@ void my_program() {
     cin >> a >> b >> c;
     
     // all combination
-    c = a + b;
-    c = a + 100; 
-    c = 100 + a; 
-    c = 100 + 100; 
-    c = (a + b) + a; 
-    c = a + (a + b); 
-    c = (a + b) + 200; 
-    c = 300 + (a + b); 
-    
-    c = a + b + a + b + a + c; 
+#define gen_expressions(op)                 \
+    c = a op b;                             \
+    c = a op 100;                           \
+    c = 100 op a;                           \
+    c = 100 op 100;                         \
+    c = (a op b) op a;                      \
+    c = a op (a op b);                      \
+    c = (a op b) op 200;                    \
+    c = 300 op (a op b);                    \
+    c = a op b op a op b op a op c; 
+
+    gen_expressions(+);
+    gen_expressions(-);
+    gen_expressions(*);
+    gen_expressions(/);
+    gen_expressions(%);
     
     cout << a << b << c;
 }
