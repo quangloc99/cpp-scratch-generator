@@ -23,6 +23,10 @@ namespace CppScratchGenerator {
     
     
 namespace Opcode {
+    namespace Control {
+        const std::string If = "control_if";
+        const std::string IfElse = "control_if_else";
+    }
     namespace Data {
         const std::string SetVariableTo = "data_setvariableto";
     }
@@ -855,6 +859,13 @@ BlockHolder operator!(const Operand& value) {
 BlockHolder operator!=(const Operand& lhs, const Operand& rhs) {
     return !(lhs == rhs);
 }
+BlockHolder operator<=(const Operand& lhs, const Operand& rhs) {
+    return !(lhs > rhs);
+}
+
+BlockHolder operator>=(const Operand& lhs, const Operand& rhs) {
+    return !(lhs < rhs);
+}
 
 BlockHolder operator||(const Operand& lhs, const Operand& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::BOOLEAN ||
@@ -907,6 +918,47 @@ DEFINE_MATHOP_FUNCTION(exp10, Opcode::Operator::MathOp::EXP10)
     
 #undef DEFINE_MATHOP_FUNCTION
 
+    
+    
+    
+class IfBlockGenerator {
+    bool collecting;
+    BlockHolder if_block;
+public:
+    IfBlockGenerator(const Operand& condition)
+        : collecting(0)
+        , if_block(Opcode::Control::If, {
+            {"CONDITION", condition.to_input()}
+        }, {})
+    {
+        if (condition.get_value_type() != Operand::ValueType::BOOLEAN) {
+            throw std::logic_error("Condition must be a boolean expression");
+        }
+    }
+    
+    ~IfBlockGenerator() {
+        if (!if_block->next.empty()) {
+            if_block->inputs.emplace("SUBSTACK", BlockInput::id(if_block->next));
+            if_block->next = "";
+        }
+        while (true) {
+            assert(!BlockHolder::block_holder_stack.empty());
+            if (BlockHolder::block_holder_stack.back().id() == if_block.id()) {
+                break;
+            }
+            BlockHolder::block_holder_stack.pop_back();
+        }
+    }
+    
+    bool check_collecting() {
+        collecting ^= 1;
+        return collecting;
+    }
+};
+    
+    
+    
+    
 struct FakeIstream {
 };
 

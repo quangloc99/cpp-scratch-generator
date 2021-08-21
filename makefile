@@ -22,10 +22,13 @@ build/test-operators: ./tests/test-operators.cpp ./cpp-scratch-generator.hpp
 	@echo "=== Building ==="
 	cd ./tests/; $(CPP) $(FLAGS) test-operators.cpp -o ../build/test-operators
 
+build/test-control: ./tests/test-control.cpp ./cpp-scratch-generator.hpp
+	@echo "=== Building ==="
+	cd ./tests/; $(CPP) $(FLAGS) test-control.cpp -o ../build/test-control
 
 # this part might change depend on what I am writing
-run: build/test-operators
+run: build/test-control
 	@echo "=== Running ==="
-	./build/test-operators
+	./build/test-control
 	make zip-temp
 

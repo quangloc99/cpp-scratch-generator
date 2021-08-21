@@ -9,5 +9,7 @@
 #undef cin
 #undef cout
 
+#undef if
+
 // vim: filetype=cpp
 
