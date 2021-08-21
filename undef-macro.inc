@@ -6,6 +6,9 @@
 #undef auto
 #undef dec_var
 
+#undef list
+#undef dec_list
+
 #undef cin
 #undef cout
 

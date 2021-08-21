@@ -15,7 +15,10 @@ using namespace CppScratchGenerator;
 
 #define auto VariableHolder
 #define var auto
-#define dec_var(name, value) VariableHolder name(#name, value)
+#define dec_var(name, ...) VariableHolder name(#name, ##__VA_ARGS__)
+
+#define list CppScratchGenerator::ListHolder
+#define dec_list(name, ...) list name(#name, ##__VA_ARGS__)
 
 #define cin fake_cin
 #define cout fake_cout

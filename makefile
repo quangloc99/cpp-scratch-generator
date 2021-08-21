@@ -1,6 +1,9 @@
 CPP=g++
 FLAGS=--std=c++11
 
+
+all: run-test-list
+
 clean:
 	rm -rf build/*
 	rm -rf ./project.json
@@ -26,9 +29,23 @@ build/test-control: ./tests/test-control.cpp ./cpp-scratch-generator.hpp
 	@echo "=== Building ==="
 	cd ./tests/; $(CPP) $(FLAGS) test-control.cpp -o ../build/test-control
 
-# this part might change depend on what I am writing
-run: build/test-operators
+build/test-list: ./tests/test-list.cpp ./cpp-scratch-generator.hpp
+	@echo "=== Building ==="
+	cd ./tests/; $(CPP) $(FLAGS) test-list.cpp -o ../build/test-list
+
+
+run-test-operators: build/test-operators
 	@echo "=== Running ==="
 	./build/test-operators
+	make zip-temp
+	
+run-test-control: build/test-control
+	@echo "=== Running ==="
+	./build/test-control
+	make zip-temp
+	
+run-test-list: build/test-list
+	@echo "=== Running ==="
+	./build/test-list
 	make zip-temp
 
