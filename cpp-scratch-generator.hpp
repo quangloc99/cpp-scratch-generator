@@ -32,6 +32,7 @@ namespace Opcode {
         const std::string multiply = "operator_multiply";
         const std::string divide = "operator_divide";
         const std::string mod = "operator_mod";
+        const std::string random = "operator_random";
     }
     namespace Looks {
         const std::string say = "looks_say";
@@ -586,89 +587,133 @@ public:
 
 
 
-// magic operator for arithmetic operator
-// This must be done for all combination of types:
-// - var/var
-// - block/block
-// - var/scalar and scalar/var
-// - block/scalar and scalar/block
-// - block/var and var/block
-// We don't need var/var tho, the compiler will optimize this for us
 
-#define DEFINE_OPERATOR(the_operator, the_opcode) \
-    BlockHolder operator the_operator(const VariableHolder& lhs, const VariableHolder& rhs) {               \
-        return BlockHolder(the_opcode, {                                                                    \
-                {"NUM1", BlockInput::variable(lhs.key())},                                                  \
-                {"NUM2", BlockInput::variable(rhs.key())}                                                   \
-        }, {}, Block::Type::SCALAR_EXPRESSION, false, false);                                               \
-    }                                                                                                       \
-    BlockHolder operator the_operator(const BlockHolder& lhs, const BlockHolder& rhs) {                     \
-        if (lhs->type != Block::Type::SCALAR_EXPRESSION ||                                                  \
-            rhs->type != Block::Type::SCALAR_EXPRESSION) {                                                  \
-            throw std::logic_error("operands of arithmetic operation must be a scalar expression");         \
-        }                                                                                                   \
-        return BlockHolder(the_opcode, {                                                                    \
-                {"NUM1", BlockInput::id(lhs.id())},                                                         \
-                {"NUM2", BlockInput::id(rhs.id())},                                                         \
-        }, {}, Block::Type::SCALAR_EXPRESSION, false, false);                                               \
-    }                                                                                                       \
-    BlockHolder operator the_operator(const VariableHolder& lhs, double rhs) {                              \
-        return BlockHolder(the_opcode, {                                                                    \
-                {"NUM1", BlockInput::variable(lhs.key())},                                                  \
-                {"NUM2", BlockInput::number(rhs)},                                                          \
-        }, {}, Block::Type::SCALAR_EXPRESSION, false, false);                                               \
-    }                                                                                                       \
-    BlockHolder operator the_operator(double lhs, const VariableHolder& rhs) {                              \
-        return BlockHolder(the_opcode, {                                                                    \
-                {"NUM1", BlockInput::number(lhs)},                                                          \
-                {"NUM2", BlockInput::variable(rhs.key())},                                                  \
-        }, {}, Block::Type::SCALAR_EXPRESSION, false, false);                                               \
-    }                                                                                                       \
-    BlockHolder operator the_operator(const BlockHolder& lhs, double rhs) {                                 \
-        if (lhs->type != Block::Type::SCALAR_EXPRESSION) {                                                  \
-            throw std::logic_error("operands of arithmetic operation must be a scalar expression");         \
-        }                                                                                                   \
-        return BlockHolder(the_opcode, {                                                                    \
-                {"NUM1", BlockInput::id(lhs.id())},                                                         \
-                {"NUM2", BlockInput::number(rhs)},                                                          \
-        }, {}, Block::Type::SCALAR_EXPRESSION, false, false);                                               \
-    }                                                                                                       \
-    BlockHolder operator the_operator(double lhs, const BlockHolder& rhs) {                                 \
-        if (rhs->type != Block::Type::SCALAR_EXPRESSION) {                                                  \
-            throw std::logic_error("operands of arithmetic operation must be a scalar expression");         \
-        }                                                                                                   \
-        return BlockHolder(the_opcode, {                                                                    \
-                {"NUM1", BlockInput::number(lhs)},                                                          \
-                {"NUM2", BlockInput::id(rhs.id())},                                                         \
-        }, {}, Block::Type::SCALAR_EXPRESSION, false, false);                                               \
-    }                                                                                                       \
-    BlockHolder operator the_operator(const BlockHolder& lhs, const VariableHolder& rhs) {                  \
-        if (lhs->type != Block::Type::SCALAR_EXPRESSION) {                                                  \
-            throw std::logic_error("operands of arithmetic operation must be a scalar expression");         \
-        }                                                                                                   \
-        return BlockHolder(the_opcode, {                                                                    \
-                {"NUM1", BlockInput::id(lhs.id())},                                                         \
-                {"NUM2", BlockInput::variable(rhs.key())},                                                  \
-        }, {}, Block::Type::SCALAR_EXPRESSION, false, false);                                               \
-    }                                                                                                       \
-    BlockHolder operator the_operator(const VariableHolder& lhs, const BlockHolder& rhs) {                  \
-        if (rhs->type != Block::Type::SCALAR_EXPRESSION) {                                                  \
-            throw std::logic_error("operands of arithmetic operation must be a scalar expression");         \
-        }                                                                                                   \
-        return BlockHolder(the_opcode, {                                                                    \
-                {"NUM1", BlockInput::variable(lhs.key())},                                                  \
-                {"NUM2", BlockInput::id(rhs.id())},                                                         \
-        }, {}, Block::Type::SCALAR_EXPRESSION, false, false);                                               \
-    }                                                                                   
-
-DEFINE_OPERATOR(+, Opcode::Operator::add)
-DEFINE_OPERATOR(-, Opcode::Operator::subtract)
-DEFINE_OPERATOR(*, Opcode::Operator::multiply)
-DEFINE_OPERATOR(/, Opcode::Operator::divide)
-DEFINE_OPERATOR(%, Opcode::Operator::mod)
+class Operand {
+public:
+    enum InnerType {
+        NUMBER_LITERAL,
+        STRING_LITERAL,
+        VARIABLE,
+        BLOCK,
+    };
     
-#undef DEFINE_OPERATOR
+    enum ValueType {
+        SCALAR, BOOLEAN
+    };
+    
+    InnerType inner_type;
+    union {
+        std::string string_value;
+        double number_value;
+        VariableHolder variable_holder;
+        BlockHolder block_holder;
+    };
+    
+    Operand(const char* s)
+        : inner_type(InnerType::STRING_LITERAL)
+        , string_value(s)
+    { }
+    Operand(const std::string& s)
+        : inner_type(InnerType::STRING_LITERAL)
+        , string_value(s)
+    { }
+    Operand(double num)
+        : inner_type(InnerType::NUMBER_LITERAL)
+        , number_value(num)
+    { }
+    Operand(const VariableHolder& u)
+        : inner_type(InnerType::VARIABLE)
+        , variable_holder(u)
+    { }
+    Operand(const BlockHolder& u)
+        : inner_type(InnerType::BLOCK)
+        , block_holder(u)
+    { }
+    ~Operand() {
+        switch (inner_type) {
+            case NUMBER_LITERAL: break;
+            case STRING_LITERAL: string_value.~basic_string(); break;
+            case VARIABLE: variable_holder.~VariableHolder(); break;
+            case BLOCK: block_holder.~BlockHolder(); break;
+        }
+    }
+    ValueType get_value_type() const {
+        if (inner_type == STRING_LITERAL || inner_type == NUMBER_LITERAL || inner_type == VARIABLE) {
+            return ValueType::SCALAR;
+        }
+        if (block_holder->type == Block::Type::SCALAR_EXPRESSION) {
+            return ValueType::SCALAR;
+        }
+        if (block_holder->type == Block::Type::BOOLEAN_EXPRESSION) {
+            return ValueType::BOOLEAN;
+        }
+        throw std::logic_error("Operand must be either scalar or boolean");
+    }
+    BlockInput to_input() const {
+        switch (inner_type) {
+            case NUMBER_LITERAL: return BlockInput::number(number_value);
+            case STRING_LITERAL: return BlockInput::string(string_value);
+            case VARIABLE: return BlockInput::variable(variable_holder.key());
+            case BLOCK: return BlockInput::id(block_holder.id());
+        }
+        assert(false);
+    }
+};
 
+BlockHolder operator+(const Operand& lhs, const Operand& rhs) {                
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::add, {
+            {"NUM1", lhs.to_input()},
+            {"NUM2", rhs.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator-(const Operand& lhs, const Operand& rhs) {                
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::subtract, {
+            {"NUM1", lhs.to_input()},
+            {"NUM2", rhs.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator*(const Operand& lhs, const Operand& rhs) {                
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::multiply, {
+            {"NUM1", lhs.to_input()},
+            {"NUM2", rhs.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator/(const Operand& lhs, const Operand& rhs) {                
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::divide, {
+            {"NUM1", lhs.to_input()},
+            {"NUM2", rhs.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator%(const Operand& lhs, const Operand& rhs) {                
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::mod, {
+            {"NUM1", lhs.to_input()},
+            {"NUM2", rhs.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
 
 struct FakeIstream {
 };
