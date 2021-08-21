@@ -10,7 +10,10 @@ void my_program() {
     auto b;
     cin >> a >> b;
     cout << b << a;
+    cout << "mot con vit";
+    cout << "xoe ra " << 2 << " cai canh";
     
+    cout << 3.1415926535;
 }
 #include "../undef-macro.inc"
 

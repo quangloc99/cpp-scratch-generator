@@ -14,10 +14,20 @@
 #include <unordered_map>
 #include <string>
 #include <stdexcept>
+#include <sstream>
+#include <iomanip>
+#include <ios>
 
 
 namespace CppScratchGenerator {
 
+    
+std::string double_to_string(double x) {
+    static std::stringstream ss;
+    ss.str("");
+    ss << std::noshowpoint << x;
+    return ss.str();
+}
     
     
     
@@ -249,7 +259,7 @@ public:
         return BlockInput(InputType::NUMBER, value);
     }
     static BlockInput number(double value) {
-        return BlockInput(InputType::NUMBER, std::to_string(value));
+        return BlockInput(InputType::NUMBER, double_to_string(value));
     }
     static BlockInput string(const std::string& value) {
         return BlockInput(InputType::STRING, value);
@@ -417,7 +427,7 @@ public:
     
     inline Variable(const std::string name_, double double_value_)  
         : name(name_)  
-        , value(std::to_string(double_value_))
+        , value(double_to_string(double_value_))
     {}  
 }; 
 
@@ -555,6 +565,31 @@ FakeOstream& operator<<(FakeOstream& cout, const VariableHolder& var) {
     });
     return cout;
 }
+
+FakeOstream& operator<<(FakeOstream& cout, const char* s) {
+    BlockHolder("looks_say", {
+            {"MESSAGE", BlockInput::string(s)}
+    }, {
+    });
+    return cout;
+}
+
+FakeOstream& operator<<(FakeOstream& cout, const std::string& s) {
+    BlockHolder("looks_say", {
+            {"MESSAGE", BlockInput::string(s)}
+    }, {
+    });
+    return cout;
+}
+
+FakeOstream& operator<<(FakeOstream& cout, double num) {
+    BlockHolder("looks_say", {
+            {"MESSAGE", BlockInput::number(num)}
+    }, {
+    });
+    return cout;
+}
+
 
 FakeIstream fake_cin;
 FakeOstream fake_cout;
