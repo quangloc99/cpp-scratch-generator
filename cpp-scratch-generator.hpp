@@ -24,25 +24,32 @@ namespace CppScratchGenerator {
     
 namespace Opcode {
     namespace Data {
-        const std::string setvariableto = "data_setvariableto";
+        const std::string SetVariableTo = "data_setvariableto";
     }
     namespace Operator {
-        const std::string add = "operator_add";
-        const std::string subtract = "operator_subtract";
-        const std::string multiply = "operator_multiply";
-        const std::string divide = "operator_divide";
-        const std::string mod = "operator_mod";
-        const std::string random = "operator_random";
+        const std::string Add = "operator_add";
+        const std::string Subtract = "operator_subtract";
+        const std::string Multiply = "operator_multiply";
+        const std::string Divide = "operator_divide";
+        const std::string Mod = "operator_mod";
+        
+        const std::string Gt = "operator_gt";
+        const std::string Lt = "operator_lt";
+        const std::string Equals = "operator_equals";
+        const std::string Not = "operator_not";
+        
+        const std::string Random = "operator_random";
+        
     }
     namespace Looks {
-        const std::string say = "looks_say";
+        const std::string Say = "looks_say";
     }
     namespace Event {
-        const std::string whenflagclicked = "event_whenflagclicked";
+        const std::string WhenFlagClicked = "event_whenflagclicked";
     }
     namespace Sensing {
-        const std::string askandwait = "sensing_askandwait";
-        const std::string answer = "sensing_answer";
+        const std::string AskAndWait = "sensing_askandwait";
+        const std::string Answer = "sensing_answer";
     }
 }
 
@@ -542,7 +549,7 @@ public:
     // magic operator
     //all operator= return void in order not to have chain assignement.
     void operator=(const VariableHolder& other) {
-        BlockHolder(Opcode::Data::setvariableto, {
+        BlockHolder(Opcode::Data::SetVariableTo, {
                 {"VALUE", BlockInput::variable(other.key())}
         }, {
                 {"VARIABLE", to_field()}
@@ -550,7 +557,7 @@ public:
     }
     
     void operator=(const std::string& s) {
-        BlockHolder(Opcode::Data::setvariableto, {
+        BlockHolder(Opcode::Data::SetVariableTo, {
                 {"VALUE", BlockInput::string(s) }
         }, {
                 {"VARIABLE", to_field()}
@@ -558,7 +565,7 @@ public:
     }
     
     void operator=(const char* s) {
-        BlockHolder(Opcode::Data::setvariableto, {
+        BlockHolder(Opcode::Data::SetVariableTo, {
                 {"VALUE", BlockInput::string(s) }
         }, {
                 {"VARIABLE", to_field()}
@@ -566,7 +573,7 @@ public:
     }
     
     void operator=(double num) {
-        BlockHolder(Opcode::Data::setvariableto, {
+        BlockHolder(Opcode::Data::SetVariableTo, {
                 {"VALUE", BlockInput::number(num) }
         }, {
                 {"VARIABLE", to_field()}
@@ -577,7 +584,7 @@ public:
         if (other->type != Block::Type::SCALAR_EXPRESSION) {
             throw std::logic_error("only scalar expression can be assigned to variable");
         }
-        BlockHolder(Opcode::Data::setvariableto, {
+        BlockHolder(Opcode::Data::SetVariableTo, {
                 {"VALUE", BlockInput::id(other.id()) }
         }, {
                 {"VARIABLE", to_field()}
@@ -666,7 +673,7 @@ BlockHolder operator+(const Operand& lhs, const Operand& rhs) {
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
     }
-    return BlockHolder(Opcode::Operator::add, {
+    return BlockHolder(Opcode::Operator::Add, {
             {"NUM1", lhs.to_input()},
             {"NUM2", rhs.to_input()},
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
@@ -677,7 +684,7 @@ BlockHolder operator-(const Operand& lhs, const Operand& rhs) {
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
     }
-    return BlockHolder(Opcode::Operator::subtract, {
+    return BlockHolder(Opcode::Operator::Subtract, {
             {"NUM1", lhs.to_input()},
             {"NUM2", rhs.to_input()},
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
@@ -688,7 +695,7 @@ BlockHolder operator*(const Operand& lhs, const Operand& rhs) {
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
     }
-    return BlockHolder(Opcode::Operator::multiply, {
+    return BlockHolder(Opcode::Operator::Multiply, {
             {"NUM1", lhs.to_input()},
             {"NUM2", rhs.to_input()},
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
@@ -699,7 +706,7 @@ BlockHolder operator/(const Operand& lhs, const Operand& rhs) {
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
     }
-    return BlockHolder(Opcode::Operator::divide, {
+    return BlockHolder(Opcode::Operator::Divide, {
             {"NUM1", lhs.to_input()},
             {"NUM2", rhs.to_input()},
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
@@ -710,7 +717,7 @@ BlockHolder operator%(const Operand& lhs, const Operand& rhs) {
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
     }
-    return BlockHolder(Opcode::Operator::mod, {
+    return BlockHolder(Opcode::Operator::Mod, {
             {"NUM1", lhs.to_input()},
             {"NUM2", rhs.to_input()},
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
@@ -721,7 +728,7 @@ BlockHolder random(const Operand& lhs, const Operand& rhs) {
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
     }
-    return BlockHolder(Opcode::Operator::random, {
+    return BlockHolder(Opcode::Operator::Random, {
             {"FROM", lhs.to_input()},
             {"TO", rhs.to_input()},
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
@@ -734,12 +741,12 @@ struct FakeIstream {
 
 // magic reading operator
 FakeIstream& operator>>(FakeIstream& cin, VariableHolder& var) {
-    BlockHolder(Opcode::Sensing::askandwait, {
+    BlockHolder(Opcode::Sensing::AskAndWait, {
             {"QUESTION", BlockInput::string(var.key() + " = ?")}
     }, {
     });
-    BlockHolder answer(Opcode::Sensing::answer, Block::Type::SCALAR_EXPRESSION, false, false);
-    BlockHolder set_answer(Opcode::Data::setvariableto, {
+    BlockHolder answer(Opcode::Sensing::Answer, Block::Type::SCALAR_EXPRESSION, false, false);
+    BlockHolder set_answer(Opcode::Data::SetVariableTo, {
             {"VALUE", BlockInput::id(answer.id())},
     }, {
             {"VARIABLE", var.to_field()}
@@ -756,7 +763,7 @@ struct FakeOstream {
 };
 
 FakeOstream& operator<<(FakeOstream& cout, const VariableHolder& var) {
-    BlockHolder(Opcode::Looks::say, {
+    BlockHolder(Opcode::Looks::Say, {
             {"MESSAGE", BlockInput::variable(var.key())}
     }, {
     });
@@ -764,7 +771,7 @@ FakeOstream& operator<<(FakeOstream& cout, const VariableHolder& var) {
 }
 
 FakeOstream& operator<<(FakeOstream& cout, const char* s) {
-    BlockHolder(Opcode::Looks::say, {
+    BlockHolder(Opcode::Looks::Say, {
             {"MESSAGE", BlockInput::string(s)}
     }, {
     });
@@ -772,7 +779,7 @@ FakeOstream& operator<<(FakeOstream& cout, const char* s) {
 }
 
 FakeOstream& operator<<(FakeOstream& cout, const std::string& s) {
-    BlockHolder(Opcode::Looks::say, {
+    BlockHolder(Opcode::Looks::Say, {
             {"MESSAGE", BlockInput::string(s)}
     }, {
     });
@@ -780,7 +787,7 @@ FakeOstream& operator<<(FakeOstream& cout, const std::string& s) {
 }
 
 FakeOstream& operator<<(FakeOstream& cout, double num) {
-    BlockHolder(Opcode::Looks::say, {
+    BlockHolder(Opcode::Looks::Say, {
             {"MESSAGE", BlockInput::number(num)}
     }, {
     });
@@ -794,7 +801,7 @@ FakeOstream fake_cout;
 void __reset_all() {
     __variable_map.clear(); 
     __block_map.clear();
-    BlockHolder(Opcode::Event::whenflagclicked, Block::Type::CONTROL, true, false);
+    BlockHolder(Opcode::Event::WhenFlagClicked, Block::Type::CONTROL, true, false);
 }
 
 using BlocklyGenerator = std::function<void()>;
