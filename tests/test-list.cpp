@@ -44,6 +44,16 @@ void my_program() {
     cout << (a.size() + b.size());
     cout << ((a.size() * b.size()) + x * y);
     
+    cout << a[1];
+    cout << a[2];
+    cout << a[3];
+    cout << d[2];
+    cout << d[1] + a[2];
+    cout << a[1] * b[2] + d[3] + c[4];
+    a[1] = 1 + 2;
+    a[1] = b[2];
+    b[2] = a.size();
+    
 #include "../undef-macro.inc"
 }
 
