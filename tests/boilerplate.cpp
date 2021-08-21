@@ -13,7 +13,9 @@ void my_program() {
     cout << "mot con vit";
     cout << "xoe ra " << 2 << " cai canh";
     
-    cout << 3.1415926535;
+    a = a + b + 1;
+    b = b + (a + 100);
+    a = (100 + b) + (200 + a);
 }
 #include "../undef-macro.inc"
 

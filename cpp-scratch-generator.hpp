@@ -20,6 +20,26 @@
 
 
 namespace CppScratchGenerator {
+    
+    
+namespace Opcode {
+    namespace Data {
+        const std::string setvariableto = "data_setvariableto";
+    }
+    namespace Operator {
+        const std::string add = "operator_add";
+    }
+    namespace Looks {
+        const std::string say = "looks_say";
+    }
+    namespace Event {
+        const std::string whenflagclicked = "event_whenflagclicked";
+    }
+    namespace Sensing {
+        const std::string askandwait = "sensing_askandwait";
+        const std::string answer = "sensing_answer";
+    }
+}
 
     
 std::string double_to_string(double x) {
@@ -175,6 +195,9 @@ public:
     const_iterator find(const std::string& key) const {
         return mp.find(key);
     }
+    iterator find(const std::string& key) {
+        return mp.find(key);
+    }
     
     void clear() {
         auto_inc_key = 0;
@@ -304,13 +327,21 @@ using BlockField = std::vector<std::string>;
 
 class Block {
 public:
+    enum Type {
+        CONTROL,
+        BOOLEAN_EXPRESSION,
+        SCALAR_EXPRESSION
+    };
+    
     std::string opcode;
+    Type type;
     std::string next, parent;
     std::unordered_map<std::string, BlockInput> inputs;
     std::unordered_map<std::string, BlockField> fields;
     
-    inline Block(const std::string& opcode_)
+    inline Block(const std::string& opcode_, Type type_ = Type::CONTROL)
         : opcode(opcode_)
+        , type(type_)
     { }
     
     inline bool is_top_level() const {
@@ -371,9 +402,10 @@ public:
     
     BlockHolder(
             const std::string& opcode,
+            Block::Type type = Block::Type::CONTROL,
             bool push_to_stack = true,
             bool do_linking = true
-    ) : it(__block_map.emplace(opcode))
+    ) : it(__block_map.emplace(opcode, type))
     {
         if (do_linking and !block_holder_stack.empty()) {
             auto& last = block_holder_stack.back();
@@ -389,11 +421,19 @@ public:
             const std::string& opcode,
             const std::unordered_map<std::string, BlockInput>& inputs,
             const std::unordered_map<std::string, BlockField>& fields,
+            Block::Type type = Block::Type::CONTROL,
             bool push_to_stack = true,
             bool do_linking = true
-    ) : BlockHolder(opcode, push_to_stack, do_linking) {
+    ) : BlockHolder(opcode, type, push_to_stack, do_linking) {
         operator*().inputs = inputs;
         operator*().fields = fields;
+        for (const auto & inp_it: inputs) {
+            if (inp_it.second.type == BlockInput::InputType::ID) {
+                auto block_it = __block_map.find(inp_it.second.value);
+                assert(block_it != __block_map.end());
+                block_it->second.parent = id();
+            }
+        }
     }
     
     const std::string& id() const {
@@ -496,7 +536,7 @@ public:
     // magic operator
     //all operator= return void in order not to have chain assignement.
     void operator=(const VariableHolder& other) {
-        BlockHolder("data_setvariableto", {
+        BlockHolder(Opcode::Data::setvariableto, {
                 {"VALUE", BlockInput::variable(other.key())}
         }, {
                 {"VARIABLE", to_field()}
@@ -504,7 +544,7 @@ public:
     }
     
     void operator=(const std::string& s) {
-        BlockHolder("data_setvariableto", {
+        BlockHolder(Opcode::Data::setvariableto, {
                 {"VALUE", BlockInput::string(s) }
         }, {
                 {"VARIABLE", to_field()}
@@ -512,7 +552,7 @@ public:
     }
     
     void operator=(const char* s) {
-        BlockHolder("data_setvariableto", {
+        BlockHolder(Opcode::Data::setvariableto, {
                 {"VALUE", BlockInput::string(s) }
         }, {
                 {"VARIABLE", to_field()}
@@ -520,8 +560,19 @@ public:
     }
     
     void operator=(double num) {
-        BlockHolder("data_setvariableto", {
+        BlockHolder(Opcode::Data::setvariableto, {
                 {"VALUE", BlockInput::number(num) }
+        }, {
+                {"VARIABLE", to_field()}
+        });
+    }
+    
+    void operator=(const BlockHolder& other) {
+        if (other->type != Block::Type::SCALAR_EXPRESSION) {
+            throw std::logic_error("only scalar expression can be assigned to variable");
+        }
+        BlockHolder(Opcode::Data::setvariableto, {
+                {"VALUE", BlockInput::id(other.id()) }
         }, {
                 {"VARIABLE", to_field()}
         });
@@ -531,18 +582,102 @@ public:
 
 
 
+// magic operator for arithmetic operator
+// This must be done for all combination of types:
+// - var/var
+// - block/block
+// - var/scalar and scalar/var
+// - block/scalar and scalar/block
+// - block/var and var/block
+// We don't need var/var tho, the compiler will optimize this for us
+
+// OPERATOR ADD
+BlockHolder operator+(const VariableHolder& lhs, const VariableHolder& rhs) {
+    return BlockHolder(Opcode::Operator::add, {
+            {"NUM1", BlockInput::variable(lhs.key())},
+            {"NUM2", BlockInput::variable(rhs.key())}
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator+(const BlockHolder& lhs, const BlockHolder& rhs) {
+    if (lhs->type != Block::Type::SCALAR_EXPRESSION or
+        rhs->type != Block::Type::SCALAR_EXPRESSION) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression");
+    }
+    return BlockHolder(Opcode::Operator::add, {
+            {"NUM1", BlockInput::id(lhs.id())},
+            {"NUM2", BlockInput::id(rhs.id())},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator+(const VariableHolder& lhs, double rhs) {
+    return BlockHolder(Opcode::Operator::add, {
+            {"NUM1", BlockInput::variable(lhs.key())},
+            {"NUM2", BlockInput::number(rhs)},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator+(double lhs, const VariableHolder& rhs) {
+    return BlockHolder(Opcode::Operator::add, {
+            {"NUM1", BlockInput::number(lhs)},
+            {"NUM2", BlockInput::variable(rhs.key())},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator+(const BlockHolder& lhs, double rhs) {
+    if (lhs->type != Block::Type::SCALAR_EXPRESSION) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression");
+    }
+    return BlockHolder(Opcode::Operator::add, {
+            {"NUM1", BlockInput::id(lhs.id())},
+            {"NUM2", BlockInput::number(rhs)},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator+(double lhs, const BlockHolder& rhs) {
+    if (rhs->type != Block::Type::SCALAR_EXPRESSION) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression");
+    }
+    return BlockHolder(Opcode::Operator::add, {
+            {"NUM1", BlockInput::number(lhs)},
+            {"NUM2", BlockInput::id(rhs.id())},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator+(const BlockHolder& lhs, const VariableHolder& rhs) {
+    if (lhs->type != Block::Type::SCALAR_EXPRESSION) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression");
+    }
+    return BlockHolder(Opcode::Operator::add, {
+            {"NUM1", BlockInput::id(lhs.id())},
+            {"NUM2", BlockInput::variable(rhs.key())},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator+(const VariableHolder& lhs, const BlockHolder& rhs) {
+    if (rhs->type != Block::Type::SCALAR_EXPRESSION) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression");
+    }
+    return BlockHolder(Opcode::Operator::add, {
+            {"NUM1", BlockInput::variable(lhs.key())},
+            {"NUM2", BlockInput::id(rhs.id())},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+
+
 
 struct FakeIstream {
 };
 
 // magic reading operator
 FakeIstream& operator>>(FakeIstream& cin, VariableHolder& var) {
-    BlockHolder("sensing_askandwait", {
+    BlockHolder(Opcode::Sensing::askandwait, {
             {"QUESTION", BlockInput::string(var.key() + " = ?")}
     }, {
     });
-    BlockHolder answer("sensing_answer", false, false);
-    BlockHolder set_answer("data_setvariableto", {
+    BlockHolder answer(Opcode::Sensing::answer, Block::Type::SCALAR_EXPRESSION, false, false);
+    BlockHolder set_answer(Opcode::Data::setvariableto, {
             {"VALUE", BlockInput::id(answer.id())},
     }, {
             {"VARIABLE", var.to_field()}
@@ -559,7 +694,7 @@ struct FakeOstream {
 };
 
 FakeOstream& operator<<(FakeOstream& cout, const VariableHolder& var) {
-    BlockHolder("looks_say", {
+    BlockHolder(Opcode::Looks::say, {
             {"MESSAGE", BlockInput::variable(var.key())}
     }, {
     });
@@ -567,7 +702,7 @@ FakeOstream& operator<<(FakeOstream& cout, const VariableHolder& var) {
 }
 
 FakeOstream& operator<<(FakeOstream& cout, const char* s) {
-    BlockHolder("looks_say", {
+    BlockHolder(Opcode::Looks::say, {
             {"MESSAGE", BlockInput::string(s)}
     }, {
     });
@@ -575,7 +710,7 @@ FakeOstream& operator<<(FakeOstream& cout, const char* s) {
 }
 
 FakeOstream& operator<<(FakeOstream& cout, const std::string& s) {
-    BlockHolder("looks_say", {
+    BlockHolder(Opcode::Looks::say, {
             {"MESSAGE", BlockInput::string(s)}
     }, {
     });
@@ -583,7 +718,7 @@ FakeOstream& operator<<(FakeOstream& cout, const std::string& s) {
 }
 
 FakeOstream& operator<<(FakeOstream& cout, double num) {
-    BlockHolder("looks_say", {
+    BlockHolder(Opcode::Looks::say, {
             {"MESSAGE", BlockInput::number(num)}
     }, {
     });
@@ -597,7 +732,7 @@ FakeOstream fake_cout;
 void __reset_all() {
     __variable_map.clear(); 
     __block_map.clear();
-    BlockHolder("event_whenflagclicked", true, false);
+    BlockHolder(Opcode::Event::whenflagclicked, Block::Type::CONTROL, true, false);
 }
 
 using BlocklyGenerator = std::function<void()>;
