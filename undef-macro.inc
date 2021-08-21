@@ -10,6 +10,7 @@
 #undef cout
 
 #undef if
+#undef else
 
 // vim: filetype=cpp
 

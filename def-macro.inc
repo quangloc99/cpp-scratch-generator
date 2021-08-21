@@ -24,5 +24,9 @@ using namespace CppScratchGenerator;
 #define if(condition) \
     for (CppScratchGenerator::IfBlockGenerator __CSG_UNIQUE_NAME(ibg)(condition); \
         __CSG_UNIQUE_NAME(ibg).check_collecting(); )
+        
+#define else \
+    for (CppScratchGenerator::ElseBlockGenerator __CSG_UNIQUE_NAME(ebg); \
+        __CSG_UNIQUE_NAME(ebg).check_collecting(); )
 
 // vim: filetype=cpp
