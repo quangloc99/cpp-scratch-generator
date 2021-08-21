@@ -27,8 +27,8 @@ build/test-control: ./tests/test-control.cpp ./cpp-scratch-generator.hpp
 	cd ./tests/; $(CPP) $(FLAGS) test-control.cpp -o ../build/test-control
 
 # this part might change depend on what I am writing
-run: build/test-control
+run: build/test-operators
 	@echo "=== Running ==="
-	./build/test-control
+	./build/test-operators
 	make zip-temp
 

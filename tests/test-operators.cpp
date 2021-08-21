@@ -17,6 +17,19 @@ void my_program() {
     
     cin >> a >> b >> c;
     
+    a += b;
+    a -= b;
+    a += 1;
+    a += 0;
+    a += 2;
+    a += b + 2;
+    a += 2 * b;
+    a -= 0;
+    a -= 1;
+    a -= 2;
+    a -= b + 2;
+    a -= 2 * b;
+    
     // all combination
 #define gen_expressions(op)                 \
     c = a op b;                             \
