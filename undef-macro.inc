@@ -6,5 +6,7 @@
 #undef auto
 #undef dec_var
 
+#undef cin
+
 // vim: filetype=cpp
 

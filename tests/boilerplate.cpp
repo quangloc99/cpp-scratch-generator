@@ -14,6 +14,8 @@ void my_program() {
     dec_var(abcd, 123);
     dec_var(xyzt, "nice");
     
+    cin >> a >> b >> x >> y;
+    
     a = b; 
     x = y;
     abcd = xyzt;

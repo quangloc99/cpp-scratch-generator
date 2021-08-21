@@ -268,7 +268,7 @@ public:
                     : ShadowType::INPUT_DIFF_BLOCK_SHADOW
             );
             if (type == InputType::ID) {
-                json_writer.v(value);
+                json_writer.sv(value);
             } else {
                 json_writer.arr_begin().v(type).sv(value);
                 if (type == InputType::VARIABLE || type == InputType::LIST) {
@@ -512,6 +512,33 @@ public:
         });
     }
 }; 
+
+
+
+
+
+struct FakeIstream {
+};
+
+// magic reading operator
+FakeIstream& operator>>(FakeIstream& cin, VariableHolder& var) {
+    BlockHolder("sensing_askandwait", {
+            {"QUESTION", BlockInput::string(var.key() + " = ?")}
+    }, {
+    });
+    BlockHolder answer("sensing_answer", false, false);
+    BlockHolder set_answer("data_setvariableto", {
+            {"VALUE", BlockInput::id(answer.id())},
+    }, {
+            {"VARIABLE", var.to_field()}
+    });
+    
+    answer->parent = set_answer.id();
+    
+    return cin;
+}
+
+FakeIstream fake_cin;
 
 
 

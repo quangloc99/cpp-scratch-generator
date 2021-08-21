@@ -7,4 +7,6 @@
 #define auto VariableHolder
 #define dec_var(name, value) VariableHolder name(#name, value)
 
+#define cin fake_cin
+
 // vim: filetype=cpp
