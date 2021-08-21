@@ -16,6 +16,11 @@
 #include <stdexcept>
 
 
+namespace CppScratchGenerator {
+
+    
+    
+    
 /**
  * A class for "more comfortable" writing json data.
  * 
@@ -538,9 +543,21 @@ FakeIstream& operator>>(FakeIstream& cin, VariableHolder& var) {
     return cin;
 }
 
+
+
+struct FakeOstream {
+};
+
+FakeOstream& operator<<(FakeOstream& cout, const VariableHolder& var) {
+    BlockHolder("looks_say", {
+            {"MESSAGE", BlockInput::variable(var.key())}
+    }, {
+    });
+    return cout;
+}
+
 FakeIstream fake_cin;
-
-
+FakeOstream fake_cout;
 
 void __reset_all() {
     __variable_map.clear(); 
@@ -635,4 +652,9 @@ inline void generate_project_json(std::ostream& out, const BlocklyGenerator& gen
             .p("agent").sv("")
         .end()
     .end();
+}
+
+
+
+
 }

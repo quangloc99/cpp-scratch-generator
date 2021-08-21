@@ -3,10 +3,11 @@
 * in "C++"
 */
 
-#define var VariableHolder
-#define auto VariableHolder
-#define dec_var(name, value) VariableHolder name(#name, value)
+#define auto CppScratchGenerator::VariableHolder
+#define var auto
+#define dec_var(name, value) CppScratchGenerator::VariableHolder name(#name, value)
 
-#define cin fake_cin
+#define cin CppScratchGenerator::fake_cin
+#define cout CppScratchGenerator::fake_cout
 
 // vim: filetype=cpp

@@ -7,6 +7,7 @@
 #undef dec_var
 
 #undef cin
+#undef cout
 
 // vim: filetype=cpp
 
