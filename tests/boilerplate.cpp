@@ -13,6 +13,10 @@ void my_program() {
     var s = "abcxyz";
     dec_var(abcd, 123);
     dec_var(xyzt, "nice");
+    
+    a = b; 
+    x = y;
+    abcd = xyzt;
 }
 #include "../undef-macro.inc"
 
