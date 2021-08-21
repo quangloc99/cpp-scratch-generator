@@ -330,6 +330,7 @@ public:
 using BlockField = std::vector<std::string>;
 
 
+
 class Block {
 public:
     enum Type {
@@ -582,8 +583,8 @@ public:
                 {"VARIABLE", to_field()}
         });
     }
+    
 }; 
-
 
 
 
@@ -714,6 +715,19 @@ BlockHolder operator%(const Operand& lhs, const Operand& rhs) {
             {"NUM2", rhs.to_input()},
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
+
+BlockHolder random(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::random, {
+            {"FROM", lhs.to_input()},
+            {"TO", rhs.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+
 
 struct FakeIstream {
 };

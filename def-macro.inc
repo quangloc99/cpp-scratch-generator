@@ -10,4 +10,6 @@
 #define cin CppScratchGenerator::fake_cin
 #define cout CppScratchGenerator::fake_cout
 
+#define random CppScratchGenerator::random
+
 // vim: filetype=cpp

@@ -6,9 +6,14 @@ using namespace std;
 
 #include "../def-macro.inc"
 void my_program() {
-    dec_var(a, 0);
-    dec_var(b, 0);
-    dec_var(c, 0);
+    dec_var(a, 0); 
+    dec_var(b, 0); 
+    dec_var(c, 0); 
+    
+    a = 1; 
+    a = "a"; 
+    a = b; 
+    a = c + b; 
     
     cin >> a >> b >> c;
     
@@ -26,10 +31,10 @@ void my_program() {
     cout << c;
     
     gen_expressions(+);
-    gen_expressions(-); 
-    gen_expressions(*); 
-    gen_expressions(/); 
-    gen_expressions(%); 
+    gen_expressions(-);  
+    gen_expressions(*);  
+    gen_expressions(/);  
+    gen_expressions(%);  
     
 #define gen_func_call(func)                       \
     c = func(a, b);                               \
@@ -39,11 +44,11 @@ void my_program() {
     c = func(a, func(a, b));                      \
     c = func(func(a, b), 200);                    \
     c = func(300, func(a, b));                    \
-    c = func(a, func(b, func(a, func(b, c))))
-    // c = func(100, 100);                          
+    c = func(a, func(b, func(a, func(b, c))));    \
+    c = func(100, 100);                          
 
     
-    // gen_func_call(random); 
+    gen_func_call(random); 
     
     cout << a << b << c;
 }
