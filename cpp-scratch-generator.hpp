@@ -243,6 +243,9 @@ public:
     static BlockInput number(const std::string& value) {
         return BlockInput(InputType::NUMBER, value);
     }
+    static BlockInput number(double value) {
+        return BlockInput(InputType::NUMBER, std::to_string(value));
+    }
     static BlockInput string(const std::string& value) {
         return BlockInput(InputType::STRING, value);
     }
@@ -480,6 +483,30 @@ public:
     void operator=(const VariableHolder& other) {
         BlockHolder("data_setvariableto", {
                 {"VALUE", BlockInput::variable(other.key())}
+        }, {
+                {"VARIABLE", to_field()}
+        });
+    }
+    
+    void operator=(const std::string& s) {
+        BlockHolder("data_setvariableto", {
+                {"VALUE", BlockInput::string(s) }
+        }, {
+                {"VARIABLE", to_field()}
+        });
+    }
+    
+    void operator=(const char* s) {
+        BlockHolder("data_setvariableto", {
+                {"VALUE", BlockInput::string(s) }
+        }, {
+                {"VARIABLE", to_field()}
+        });
+    }
+    
+    void operator=(double num) {
+        BlockHolder("data_setvariableto", {
+                {"VALUE", BlockInput::number(num) }
         }, {
                 {"VARIABLE", to_field()}
         });

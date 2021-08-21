@@ -17,6 +17,12 @@ void my_program() {
     a = b; 
     x = y;
     abcd = xyzt;
+    
+    x = "abcd";
+    s = "123";
+    
+    a = 123;
+    b = 2.3;
 }
 #include "../undef-macro.inc"
 
