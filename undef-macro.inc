@@ -11,6 +11,7 @@
 
 #undef if
 #undef else
+#undef repeat
 
 // vim: filetype=cpp
 

@@ -28,5 +28,9 @@ using namespace CppScratchGenerator;
 #define else \
     for (CppScratchGenerator::ElseBlockGenerator __CSG_UNIQUE_NAME(ebg); \
         __CSG_UNIQUE_NAME(ebg).check_collecting(); )
+        
+#define repeat(times) \
+    for (CppScratchGenerator::RepeatBlockGenerator __CSG_UNIQUE_NAME(rbg)(times); \
+        __CSG_UNIQUE_NAME(rbg).check_collecting(); )
 
 // vim: filetype=cpp
