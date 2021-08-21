@@ -4,8 +4,8 @@
 
 using namespace std;
 
-#include "../def-macro.inc"
 void my_program() {
+#include "../def-macro.inc"
     dec_var(a, 0); 
     dec_var(b, 0); 
     dec_var(c, 0); 
@@ -36,7 +36,7 @@ void my_program() {
     gen_expressions(/);  
     gen_expressions(%);  
     
-#define gen_func_call(func)                       \
+#define gen_func_call_binary(func)                \
     c = func(a, b);                               \
     c = func(a, 100);                             \
     c = func(100, a);                             \
@@ -45,14 +45,44 @@ void my_program() {
     c = func(func(a, b), 200);                    \
     c = func(300, func(a, b));                    \
     c = func(a, func(b, func(a, func(b, c))));    \
-    c = func(100, 100);                          
+    c = func(100, 100);                           \
+    cout << c;
 
     
-    gen_func_call(random); 
+    gen_func_call_binary(random); 
+    gen_func_call_binary(join); 
+    gen_func_call_binary(letter_of); 
+    
+#define gen_func_call_unary(func) \
+    c = func(a);                    \
+    c = func(1);                    \
+    c = func(2 + 3);                \
+    c = func("abc");                \
+    c = func(a + a);                \
+    c = func(a * a);                \
+    c = func(a + b + 123);          \
+    cout << c;
+    
+    gen_func_call_unary(length);
+    gen_func_call_unary(round);
+    gen_func_call_unary(abs);
+    gen_func_call_unary(floor);
+    gen_func_call_unary(ceiling);
+    gen_func_call_unary(sqrt);
+    gen_func_call_unary(sin);
+    gen_func_call_unary(cos);
+    gen_func_call_unary(tan);
+    gen_func_call_unary(asin);
+    gen_func_call_unary(acos);
+    gen_func_call_unary(atan);
+    gen_func_call_unary(ln);
+    gen_func_call_unary(log);
+    gen_func_call_unary(expe);
+    gen_func_call_unary(exp10);
     
     cout << a << b << c;
-}
 #include "../undef-macro.inc"
+}
 
 int main() {
     ofstream out("project.json");

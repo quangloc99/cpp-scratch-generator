@@ -38,8 +38,33 @@ namespace Opcode {
         const std::string Equals = "operator_equals";
         const std::string Not = "operator_not";
         
+        const std::string And = "operator_and";
+        const std::string Or = "operator_or";
+        
+        const std::string Join = "operator_join";
+        const std::string LetterOf = "operator_letter_of";
+        const std::string Length = "operator_length";
+        const std::string Contains = "operator_contains";
+        const std::string Round = "operator_round";
+        const std::string Mathop = "operator_mathop";
         const std::string Random = "operator_random";
         
+        namespace MathOp {
+            const std::string ABS = "abs";
+            const std::string FLOOR = "floor";
+            const std::string CEILING = "ceiling";
+            const std::string SQRT = "sqrt";
+            const std::string SIN = "sin";
+            const std::string COS = "cos";
+            const std::string TAN = "tan";
+            const std::string ASIN = "asin";
+            const std::string ACOS = "acos";
+            const std::string ATAN = "atan";
+            const std::string LN = "ln";
+            const std::string LOG = "log";
+            const std::string EXPE = "e ^";
+            const std::string EXP10 = "10 ^";
+        };
     }
     namespace Looks {
         const std::string Say = "looks_say";
@@ -726,7 +751,7 @@ BlockHolder operator%(const Operand& lhs, const Operand& rhs) {
 BlockHolder random(const Operand& lhs, const Operand& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
-        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+        throw std::logic_error("operands in function random must be a scalar expression"); 
     }
     return BlockHolder(Opcode::Operator::Random, {
             {"FROM", lhs.to_input()},
@@ -734,7 +759,153 @@ BlockHolder random(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
+BlockHolder join(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands in function join must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Join, {
+            {"STRING1", lhs.to_input()},
+            {"STRING2", rhs.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
 
+BlockHolder letter_of(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands in function letter of must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::LetterOf, {
+            {"LETTER", lhs.to_input()},
+            {"STRING", rhs.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder length(const Operand& value) {
+    if (value.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands in function length must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Length, {
+            {"STRING", value.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder contains(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands in function contains must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Contains, {
+            {"STRING1", lhs.to_input()},
+            {"STRING2", rhs.to_input()},
+    }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
+}
+
+BlockHolder round(const Operand& value) {
+    if (value.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands in function round must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Round, {
+            {"NUM", value.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+BlockHolder operator<(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Lt, {
+            {"OPERAND1", lhs.to_input()},
+            {"OPERAND2", rhs.to_input()},
+    }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
+}
+
+BlockHolder operator>(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Gt, {
+            {"OPERAND1", lhs.to_input()},
+            {"OPERAND2", rhs.to_input()},
+    }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
+}
+
+BlockHolder operator==(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Equals, {
+            {"OPERAND1", lhs.to_input()},
+            {"OPERAND2", rhs.to_input()},
+    }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
+}
+
+BlockHolder operator!(const Operand& value) {
+    if (value.get_value_type() != Operand::ValueType::BOOLEAN) {
+        throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Not, {
+            {"OPERAND", value.to_input()},
+    }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
+}
+
+BlockHolder operator!=(const Operand& lhs, const Operand& rhs) {
+    return !(lhs == rhs);
+}
+
+BlockHolder operator||(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::BOOLEAN ||
+        rhs.get_value_type() != Operand::ValueType::BOOLEAN) {
+        throw std::logic_error("operands of a logic operation must be a boolean expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Or, {
+            {"OPERAND1", lhs.to_input()},
+            {"OPERAND2", rhs.to_input()},
+    }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
+}
+
+BlockHolder operator&&(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::BOOLEAN ||
+        rhs.get_value_type() != Operand::ValueType::BOOLEAN) {
+        throw std::logic_error("operands of a logic operation must be a boolean expression"); 
+    }
+    return BlockHolder(Opcode::Operator::And, {
+            {"OPERAND1", lhs.to_input()},
+            {"OPERAND2", rhs.to_input()},
+    }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
+}
+
+#define DEFINE_MATHOP_FUNCTION(func_name, op_name) \
+    BlockHolder func_name(const Operand& value) {                                                       \
+        if (value.get_value_type() != Operand::ValueType::SCALAR) {                                     \
+            throw std::logic_error("operands in mathop function must be a scalar expression");          \
+        }                                                                                               \
+        return BlockHolder(Opcode::Operator::Mathop, {                                                  \
+                {"NUM", value.to_input()},                                                              \
+        }, {                                                                                            \
+                {"OPERATOR", {op_name}}                                                                 \
+        }, Block::Type::SCALAR_EXPRESSION, false, false);                                               \
+    }
+
+DEFINE_MATHOP_FUNCTION(abs, Opcode::Operator::MathOp::ABS)
+DEFINE_MATHOP_FUNCTION(floor, Opcode::Operator::MathOp::FLOOR)
+DEFINE_MATHOP_FUNCTION(ceiling, Opcode::Operator::MathOp::CEILING)
+DEFINE_MATHOP_FUNCTION(sqrt, Opcode::Operator::MathOp::SQRT)
+DEFINE_MATHOP_FUNCTION(sin, Opcode::Operator::MathOp::SIN)
+DEFINE_MATHOP_FUNCTION(cos, Opcode::Operator::MathOp::COS)
+DEFINE_MATHOP_FUNCTION(tan, Opcode::Operator::MathOp::TAN)
+DEFINE_MATHOP_FUNCTION(asin, Opcode::Operator::MathOp::ASIN)
+DEFINE_MATHOP_FUNCTION(acos, Opcode::Operator::MathOp::ACOS)
+DEFINE_MATHOP_FUNCTION(atan, Opcode::Operator::MathOp::ATAN)
+DEFINE_MATHOP_FUNCTION(ln, Opcode::Operator::MathOp::LN)
+DEFINE_MATHOP_FUNCTION(log, Opcode::Operator::MathOp::LOG)
+DEFINE_MATHOP_FUNCTION(expe, Opcode::Operator::MathOp::EXPE)
+DEFINE_MATHOP_FUNCTION(exp10, Opcode::Operator::MathOp::EXP10)
+    
+#undef DEFINE_MATHOP_FUNCTION
 
 struct FakeIstream {
 };

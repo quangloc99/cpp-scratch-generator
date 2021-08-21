@@ -2,14 +2,19 @@
 * This file contains all macro/shorthand/magic for comfortably writing things
 * in "C++"
 */
+// must be in a function
 
-#define auto CppScratchGenerator::VariableHolder
+
+
+using namespace CppScratchGenerator;
+
+
+
+#define auto VariableHolder
 #define var auto
-#define dec_var(name, value) CppScratchGenerator::VariableHolder name(#name, value)
+#define dec_var(name, value) VariableHolder name(#name, value)
 
-#define cin CppScratchGenerator::fake_cin
-#define cout CppScratchGenerator::fake_cout
-
-#define random CppScratchGenerator::random
+#define cin fake_cin
+#define cout fake_cout
 
 // vim: filetype=cpp
