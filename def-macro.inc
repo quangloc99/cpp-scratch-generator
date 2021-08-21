@@ -32,5 +32,15 @@ using namespace CppScratchGenerator;
 #define repeat(times) \
     for (CppScratchGenerator::RepeatBlockGenerator __CSG_UNIQUE_NAME(rbg)(times); \
         __CSG_UNIQUE_NAME(rbg).check_collecting(); )
+        
+#define repeat_until(condition) \
+    for (CppScratchGenerator::RepeatUntilBlockGenerator __CSG_UNIQUE_NAME(rubg)(condition); \
+        __CSG_UNIQUE_NAME(rubg).check_collecting(); )
+        
+#define while(condition) repeat_until(!(condition))
+
+#define return assert(("return is not supported in CppScratchGenerator", false))
+#define continue assert(("continue is not supported in CppScratchGenerator", false))
+#define break assert(("break is not supported in CppScratchGenerator", false))
 
 // vim: filetype=cpp

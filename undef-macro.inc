@@ -12,6 +12,12 @@
 #undef if
 #undef else
 #undef repeat
+#undef repeat_until
+#undef while
+
+#undef return
+#undef continue
+#undef break
 
 // vim: filetype=cpp
 

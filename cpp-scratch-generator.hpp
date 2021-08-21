@@ -27,7 +27,7 @@ namespace Opcode {
         const std::string If = "control_if";
         const std::string IfElse = "control_if_else";
         const std::string Repeat = "control_repeat";
-        const std::string RepeatUntil = "constrol_repeat_until";
+        const std::string RepeatUntil = "control_repeat_until";
     }
     namespace Data {
         const std::string SetVariableTo = "data_setvariableto";
@@ -1007,7 +1007,28 @@ public:
     }
 };
     
+
+class RepeatUntilBlockGenerator : public ControlBlockGenerator {
+    BlockHolder repeat_until_block;
+public:
+    RepeatUntilBlockGenerator(const Operand& condition)
+        : ControlBlockGenerator()
+        , repeat_until_block(Opcode::Control::RepeatUntil, {
+            {"CONDITION", condition.to_input()}
+        }, {})
+    {
+        if (condition.get_value_type() != Operand::ValueType::BOOLEAN) {
+            throw std::logic_error("Condition must be a boolean expression");
+        }
+    }
+    ~RepeatUntilBlockGenerator() {
+        BlockHolder::make_substack(repeat_until_block, "SUBSTACK");
+    }
+};
     
+
+
+
     
 struct FakeIstream {
 };
