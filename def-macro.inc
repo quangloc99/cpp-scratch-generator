@@ -6,60 +6,57 @@
 #include<functional>
 #include<exception>
 
-// https://github.com/swansontec/map-macro/blob/master/map.h 
-/*
- * Created by William Swanson in 2012.
- *
- * I, William Swanson, dedicate this work to the public domain.
- * I waive all rights to the work worldwide under copyright law,
- * including all related and neighboring rights,
- * to the extent allowed by law.
- *
- * You can copy, modify, distribute and perform the work,
- * even for commercial purposes, all without asking permission.
- */
+https://newbedev.com/is-it-possible-to-iterate-over-arguments-in-variadic-macros
+#ifndef __FOREACH_MACROS__
+#define __FOREACH_MACROS__
 
-#ifndef MAP_H_INCLUDED
-#define MAP_H_INCLUDED
+// Make a FOREACH macro
+#define GET_MACRO(_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,NAME,...) NAME 
 
-#define EVAL0(...) __VA_ARGS__
-#define EVAL1(...) EVAL0(EVAL0(EVAL0(__VA_ARGS__)))
-#define EVAL2(...) EVAL1(EVAL1(EVAL1(__VA_ARGS__)))
-#define EVAL3(...) EVAL2(EVAL2(EVAL2(__VA_ARGS__)))
-#define EVAL4(...) EVAL3(EVAL3(EVAL3(__VA_ARGS__)))
-#define EVAL(...)  EVAL4(EVAL4(EVAL4(__VA_ARGS__)))
+  
+#define FE_0(WHAT, data, sep)
+#define FE_1(WHAT, data, sep, X) WHAT(data, X) 
+#define FE_2(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_1(WHAT, data, sep, __VA_ARGS__)
+#define FE_3(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_2(WHAT, data, sep, __VA_ARGS__)
+#define FE_4(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_3(WHAT, data, sep, __VA_ARGS__)
+#define FE_5(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_4(WHAT, data, sep, __VA_ARGS__)
+#define FE_6(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_5(WHAT, data, sep, __VA_ARGS__)
+#define FE_7(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_6(WHAT, data, sep, __VA_ARGS__)
+#define FE_8(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_7(WHAT, data, sep, __VA_ARGS__)
+#define FE_9(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_8(WHAT, data, sep, __VA_ARGS__)
+#define FE_10(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_9(WHAT, data, sep, __VA_ARGS__)
+#define FE_11(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_10(WHAT, data, sep, __VA_ARGS__)
+#define FE_12(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_11(WHAT, data, sep, __VA_ARGS__)
+#define FE_13(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_12(WHAT, data, sep, __VA_ARGS__)
+#define FE_14(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_13(WHAT, data, sep, __VA_ARGS__)
+#define FE_15(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_14(WHAT, data, sep, __VA_ARGS__)
+#define FE_16(WHAT, data, sep, X, ...) WHAT(data, X)sep FE_15(WHAT, data, sep, __VA_ARGS__)
+//... repeat as needed
 
-#define MAP_END(...)
-#define MAP_OUT
-#define MAP_COMMA ,
+#define FOR_EACH(action, data, separator,...) \
+  GET_MACRO(_0,##__VA_ARGS__,FE_16,FE_15,FE_14,FE_13,FE_12,FE_11,FE_10,FE_9,FE_8,FE_7,FE_6,FE_5,FE_4,FE_3,FE_2,FE_1,FE_0)(action, data, separator,##__VA_ARGS__)
 
-#define MAP_GET_END2() 0, MAP_END
-#define MAP_GET_END1(...) MAP_GET_END2
-#define MAP_GET_END(...) MAP_GET_END1
-#define MAP_NEXT0(test, next, ...) next MAP_OUT
-#define MAP_NEXT1(test, next) MAP_NEXT0(test, next, 0)
-#define MAP_NEXT(test, next)  MAP_NEXT1(MAP_GET_END test, next)
+#define FE_COMMA_0(WHAT, data)
+#define FE_COMMA_1(WHAT, data, X) WHAT(data, X) 
+#define FE_COMMA_2(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_1(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_3(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_2(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_4(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_3(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_5(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_4(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_6(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_5(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_7(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_6(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_8(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_7(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_9(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_8(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_10(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_9(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_11(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_10(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_12(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_11(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_13(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_12(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_14(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_13(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_15(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_14(WHAT, data, __VA_ARGS__)
+#define FE_COMMA_16(WHAT, data, X, ...) WHAT(data, X), FE_COMMA_15(WHAT, data, __VA_ARGS__)
+//... repeat as needed
 
-#define MAP0(f, x, peek, ...) f(x) MAP_NEXT(peek, MAP1)(f, peek, __VA_ARGS__)
-#define MAP1(f, x, peek, ...) f(x) MAP_NEXT(peek, MAP0)(f, peek, __VA_ARGS__)
-
-#define MAP_LIST_NEXT1(test, next) MAP_NEXT0(test, MAP_COMMA next, 0)
-#define MAP_LIST_NEXT(test, next)  MAP_LIST_NEXT1(MAP_GET_END test, next)
-
-#define MAP_LIST0(f, x, peek, ...) f(x) MAP_LIST_NEXT(peek, MAP_LIST1)(f, peek, __VA_ARGS__)
-#define MAP_LIST1(f, x, peek, ...) f(x) MAP_LIST_NEXT(peek, MAP_LIST0)(f, peek, __VA_ARGS__)
-
-/**
- * Applies the function macro `f` to each of the remaining parameters.
- */
-#define MAP(f, ...) EVAL(MAP1(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0))
-
-/**
- * Applies the function macro `f` to each of the remaining parameters and
- * inserts commas between the results.
- */
-#define MAP_LIST(f, ...) EVAL(MAP_LIST1(f, __VA_ARGS__, ()()(), ()()(), ()()(), 0))
-
+#define FOR_EACH_COMMA(action, data, ...) \
+  GET_MACRO(_0,##__VA_ARGS__,FE_COMMA_16,FE_COMMA_15,FE_COMMA_14,FE_COMMA_13,FE_COMMA_12,FE_COMMA_11,FE_COMMA_10,FE_COMMA_9,FE_COMMA_8,FE_COMMA_7,FE_COMMA_6,FE_COMMA_5,FE_COMMA_4,FE_COMMA_3,FE_COMMA_2,FE_COMMA_1,FE_COMMA_0)(action, data, ##__VA_ARGS__)
 #endif
 
 
@@ -70,6 +67,8 @@ using namespace CppScratchGenerator;
 #define __CSG_CONCAT_INNER(a, b) a ## b
 
 #define __CSG_UNIQUE_NAME(base) __CSG_CONCAT(base, __LINE__)
+#define __CSG_STR0(x) #x
+#define __CSG_STR(x) __CSG_STR0(x)
 
 #define auto VariableHolder
 #define var auto
@@ -106,13 +105,43 @@ using namespace CppScratchGenerator;
 #define do assert(("do is not supported in CppScratchGenerator", false))
 
 
+#define __procedure_arg_proccode(_, x) " %s"
+#define __procedure_arg_id(proc_name, x) #proc_name "#arg_" #x 
+#define __procedure_arg_id_quoted(proc_name, x) "\\\"" __procedure_arg_id(proc_name, x) "\\\""
+#define __procedure_arg_name(_, x) "\\\""#x"\\\""
+#define __procedure_arg_default(_, x) "\\\"\\\""
+
+#define __procedure_arg_lambda_arg(_, x) const CppScratchGenerator::ProcedureArgument& x
+#define __procedure_arg_lambda_passing_arg(_, x) CppScratchGenerator::ProcedureArgument(#x)
+
+#define __procedure_arg_call_arg(_, x) const CppScratchGenerator::Operand& x
+#define __procedure_arg_call_check(_, x) \
+    CppScratchGenerator::throw_if(                                              \
+        x.get_value_type() != CppScratchGenerator::Operand::ValueType::SCALAR,  \
+        std::invalid_argument("Argument for procedure should be scalar")        \
+    )
+#define __procedure_arg_call_mount(name, x) {__procedure_arg_id(name, x), x.to_input() }
+    
+#define __procedure_arg_init_block(name, x) \
+    {__procedure_arg_id(name, x), CppScratchGenerator::BlockInput::noshadow_id(     \
+            CppScratchGenerator::BlockHolder(                                       \
+                CppScratchGenerator::Opcode::Procedures::ScalarArgumentReporter,    \
+                {}, {{"VALUE", {#x}}},                                              \
+                CppScratchGenerator::Block::Type::SCALAR_EXPRESSION,                \
+                false, false                                                        \
+            ).id()                                                                  \
+    ) }
+    
+
 #define procedure(name, ...) \
-    class procedure ## name {                                                                   \
+    class procedure_ ## name {                                                                  \
         CppScratchGenerator::BlockHolder proc_proto, proc_def;                                  \
         bool body_set;                                                                          \
     public:                                                                                     \
-        procedure ## name()                                                                     \
-            : proc_proto(Opcode::Procedures::Prototype, Block::Type::CONTROL, false, false)     \
+        procedure_ ## name()                                                                    \
+            : proc_proto(Opcode::Procedures::Prototype, {                                       \
+                    FOR_EACH_COMMA(__procedure_arg_init_block, name, ##__VA_ARGS__)             \
+            }, {}, Block::Type::CONTROL, false, false)                                          \
             , proc_def(Opcode::Procedures::Definition, { {"custom_block",                       \
                         CppScratchGenerator::BlockInput::noshadow_id(proc_proto.id())}          \
                 }, {}, Block::Type::CONTROL, true, false)                                       \
@@ -124,24 +153,45 @@ using namespace CppScratchGenerator;
             json_writer.p("mutation").obj_begin()                                               \
                 .p("tagName").sv("mutation")                                                    \
                 .p("children").arr_begin().end()                                                \
-                .p("proccode").sv(#name)                                                        \
-                .p("argumentids").sv("[]")                                                      \
-                .p("argumentnames").sv("[]")                                                    \
-                .p("argumentdefaults").sv("[]")                                                 \
+                .p("proccode").sv(                                                              \
+                    #name FOR_EACH(__procedure_arg_proccode,,, ##__VA_ARGS__)                   \
+                )                                                                               \
+                .p("argumentids").sv(                                                           \
+                    "[" FOR_EACH(__procedure_arg_id_quoted, name, ",", ##__VA_ARGS__) "]"       \
+                )                                                                               \
+                .p("argumentnames").sv(                                                         \
+                    "[" FOR_EACH(__procedure_arg_name,, ",", ##__VA_ARGS__) "]"                 \
+                )                                                                               \
+                .p("argumentdefaults").sv(                                                      \
+                    "[" FOR_EACH(__procedure_arg_default,, ",", ##__VA_ARGS__) "]"              \
+                )                                                                               \
                 .p("warp").sv("false")                                                          \
             .end();                                                                             \
         }                                                                                       \
-        void operator=(const std::function<void()>& gen_body) {                                 \
+        void operator=(const std::function<void(                                                \
+                FOR_EACH_COMMA(__procedure_arg_lambda_arg,, ##__VA_ARGS__)                      \
+        )>& gen_body) {                                                                         \
             CppScratchGenerator::throw_if(                                                      \
                 body_set, std::invalid_argument("must not set procedure's body twice")          \
             );                                                                                  \
-            gen_body();                                                                         \
+            gen_body(                                                                           \
+                FOR_EACH_COMMA(__procedure_arg_lambda_passing_arg,, ##__VA_ARGS__)              \
+            );                                                                                  \
             CppScratchGenerator::BlockHolder::pop_stack_til<true>(proc_def.id());               \
             CppScratchGenerator::BlockHolder::block_holder_stack.pop_back();                    \
         }                                                                                       \
-        void operator()() {                                                                     \
+        void operator()(FOR_EACH_COMMA(__procedure_arg_call_arg,, ##__VA_ARGS__)) {             \
+            /*std::cerr << "calling " << #name << endl;*/                                       \
+            FOR_EACH(__procedure_arg_call_check,,;,##__VA_ARGS__);                              \
+            CppScratchGenerator::BlockHolder call_block(                                        \
+                CppScratchGenerator::Opcode::Procedures::Call, {                                \
+                    FOR_EACH_COMMA(__procedure_arg_call_mount, name, ##__VA_ARGS__)             \
+                }, {}, CppScratchGenerator::Block::Type::CONTROL, true, true);                  \
+            call_block->write_additional = write_mutation;                                      \
         }                                                                                       \
     } name;                                                                                     \
-    name = [&]()  /* expecting the user to use braces to define the body  */
+    name = [&](                                                                                 \
+                FOR_EACH_COMMA(__procedure_arg_lambda_arg,, ##__VA_ARGS__)                      \
+    )  /* expecting the user to use braces to define the body  */
 
 // vim: filetype=cpp

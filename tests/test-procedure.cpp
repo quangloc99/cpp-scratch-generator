@@ -9,12 +9,30 @@ void my_program() {
     dec_var(a, 0);
     dec_var(b, 0);
     procedure(x) {
-        a = a + b;
-        if (a > b) {
-            cout << a << " is bigger than " << b;
-        }
+        a = a + b; 
+        if (a > b) { 
+            cout << a << " is bigger than " << b; 
+        } 
+        x();
+        x();
     };
-    // x();  
+    
+    x();
+    x();
+    x();
+    x();
+    cout << "done x definition";  
+    
+    procedure(check_divide, a, b, c) { 
+        if (a % b == 0) {  
+            cout << b << " divides " << a;   
+        }  
+    }; 
+    cout << "done check_divide definition"; 
+    
+    check_divide(1, 2, 3); 
+    check_divide("a", "b", "c"); 
+    
 #include "../undef-macro.inc"
 }
 

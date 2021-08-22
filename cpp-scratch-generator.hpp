@@ -431,6 +431,7 @@ public:
     inline bool should_have_shadow() const {
         // might change this if it became bigger
         return opcode == Opcode::Procedures::Prototype;
+            // opcode == Opcode::Procedures::ScalarArgumentReporter; 
     }
     
     inline void write_json(StupidJsonWriter& json_writer) const {
@@ -522,6 +523,7 @@ public:
             bool do_linking = true
     ) : it(__block_map.emplace(opcode, type))
     {
+        // std::cerr << "=== creating " << id() << std::endl; 
         if (do_linking and !block_holder_stack.empty()) {
             auto& last = block_holder_stack.back();
             last->next = id();
@@ -529,6 +531,7 @@ public:
         }
         if (push_to_stack) {
             block_holder_stack.push_back(*this);
+            // std::cerr << "== push " << id() << std::endl; 
         }
     }
     
@@ -542,7 +545,11 @@ public:
     ) : BlockHolder(opcode, type, push_to_stack, do_linking) {
         operator*().inputs = inputs;
         operator*().fields = fields;
-        for (const auto & inp_it: inputs) {
+        fix_input();
+    }
+    
+    void fix_input() {
+        for (const auto & inp_it: operator*().inputs) {
             if (inp_it.second.is_id()) {
                 auto block_it = __block_map.find(inp_it.second.value);
                 assert(block_it != __block_map.end());
@@ -1285,6 +1292,18 @@ public:
     
 
 
+
+class ProcedureArgument {
+    std::string name;
+public:
+    ProcedureArgument(const std::string name_): name(name_) {}
+    operator Operand() const {
+        return Operand(
+                BlockHolder(Opcode::Procedures::ScalarArgumentReporter, {
+                }, {{"VALUE", {name}}}, Block::Type::SCALAR_EXPRESSION, false, false)
+        );
+    }
+};
 
 
 
