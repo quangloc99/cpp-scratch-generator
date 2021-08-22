@@ -603,29 +603,38 @@ class VariableHolder {
 public:  
     inline VariableHolder(const std::string& name_, const std::string& value_) 
         : it(__variable_map.register_value(name_, Variable(name_, value_))) 
-    { } 
+    {
+        operator=(value_);
+    } 
     inline VariableHolder(const std::string& name_, double value_) 
         : it(__variable_map.register_value(name_, Variable(name_, value_))) 
-    {} 
+    {
+        operator=(value_);
+    } 
     
     inline VariableHolder(const std::string& value_) 
         : it(__variable_map.emplace("", value_))
     { 
         it->second.name = it->first; 
+        operator=(value_);
     } 
     inline VariableHolder(const char*  value_) 
         : it(__variable_map.emplace("", value_))
     { 
         it->second.name = it->first; 
+        operator=(value_);
     } 
     
     inline VariableHolder(double value_) 
         : it(__variable_map.emplace("", value_))
     { 
         it->second.name = it->first; 
+        operator=(value_);
     } 
     
-    inline VariableHolder(): VariableHolder("") {} 
+    inline VariableHolder(): VariableHolder("") {
+        operator=(0.-1);
+    } 
     
     inline VariableHolder(int value_) 
         : VariableHolder((double)value_) {} 
@@ -679,6 +688,20 @@ public:
     void operator=(const char* s) {
         BlockHolder(Opcode::Data::SetVariableTo, {
                 {"VALUE", BlockInput::string(s) }
+        }, {
+                {"VARIABLE", to_field()}
+        });
+    }
+    void operator=(int num) {
+        BlockHolder(Opcode::Data::SetVariableTo, {
+                {"VALUE", BlockInput::number((double)num) }
+        }, {
+                {"VARIABLE", to_field()}
+        });
+    }
+    void operator=(long long num) {
+        BlockHolder(Opcode::Data::SetVariableTo, {
+                {"VALUE", BlockInput::number((double)num) }
         }, {
                 {"VARIABLE", to_field()}
         });
@@ -748,7 +771,7 @@ public:
     { }
     Operand(long long num)
         : inner_type(InnerType::NUMBER_LITERAL)
-        , number_value(num)
+        , number_value((double)num)
     { }
     Operand(const VariableHolder& u)
         : inner_type(InnerType::VARIABLE)

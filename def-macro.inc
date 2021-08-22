@@ -6,7 +6,7 @@
 #include<functional>
 #include<exception>
 
-https://newbedev.com/is-it-possible-to-iterate-over-arguments-in-variadic-macros
+// https://newbedev.com/is-it-possible-to-iterate-over-arguments-in-variadic-macros 
 #ifndef __FOREACH_MACROS__
 #define __FOREACH_MACROS__
 
