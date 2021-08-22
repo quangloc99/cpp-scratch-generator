@@ -17,6 +17,7 @@
 #undef repeat
 #undef repeat_until
 #undef while
+#undef do
 
 #undef return
 #undef continue

@@ -1,8 +1,8 @@
 CPP=g++
-FLAGS=--std=c++11
+FLAGS=--std=c++11 -g
+LIB_SOURCE=./cpp-scratch-generator.hpp ./def-macro.inc ./undef-macro.inc
 
-
-all: run-test-list
+all: run-test-procedure
 
 clean:
 	rm -rf build/*
@@ -17,21 +17,25 @@ zip-temp:
 check-source: cpp-scratch-generator.hpp
 	$(CPP) $(FLAG) cpp-scratch-generator.hpp -c -o ./build/cpp-scratch-generator.o
 	
-build/boilerplate: ./tests/boilerplate.cpp ./cpp-scratch-generator.hpp
+build/boilerplate: ./tests/boilerplate.cpp $(LIB_SOURCE)
 	@echo "=== Building ==="
 	cd ./tests/; $(CPP) $(FLAGS) boilerplate.cpp -o ../build/boilerplate 
 	
-build/test-operators: ./tests/test-operators.cpp ./cpp-scratch-generator.hpp
+build/test-operators: ./tests/test-operators.cpp $(LIB_SOURCE)
 	@echo "=== Building ==="
 	cd ./tests/; $(CPP) $(FLAGS) test-operators.cpp -o ../build/test-operators
 
-build/test-control: ./tests/test-control.cpp ./cpp-scratch-generator.hpp
+build/test-control: ./tests/test-control.cpp $(LIB_SOURCE)
 	@echo "=== Building ==="
 	cd ./tests/; $(CPP) $(FLAGS) test-control.cpp -o ../build/test-control
 
-build/test-list: ./tests/test-list.cpp ./cpp-scratch-generator.hpp
+build/test-list: ./tests/test-list.cpp $(LIB_SOURCE)
 	@echo "=== Building ==="
 	cd ./tests/; $(CPP) $(FLAGS) test-list.cpp -o ../build/test-list
+	
+build/test-procedure: ./tests/test-procedure.cpp $(LIB_SOURCE)
+	@echo "=== Building ==="
+	cd ./tests/; $(CPP) $(FLAGS) test-procedure.cpp -o ../build/test-procedure
 
 
 run-test-operators: build/test-operators
@@ -49,3 +53,7 @@ run-test-list: build/test-list
 	./build/test-list
 	make zip-temp
 
+run-test-procedure: build/test-procedure
+	@echo "=== Running ==="
+	./build/test-procedure
+	make zip-temp
