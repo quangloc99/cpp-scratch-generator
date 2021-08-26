@@ -115,7 +115,8 @@ std::string double_to_string(double x) {
 }
 
 // doing this because `if` will be overrided by macro in `def-macro.inc` file.
-void throw_if(bool condition, const std::exception& exception) {
+template<class E>
+void throw_if(bool condition, const E& exception) {
     if (condition) throw exception;
 }
 

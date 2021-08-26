@@ -41,6 +41,10 @@ build/test-cin-prompt: ./tests/test-cin-prompt.cpp $(LIB_SOURCE)
 	@echo "=== Building ==="
 	cd ./tests/; $(CPP) $(FLAGS) test-cin-prompt.cpp -o ../build/test-cin-prompt
 	
+build/test-forbidden-keywords: ./tests/test-forbidden-keywords.cpp $(LIB_SOURCE)
+	@echo "=== Building ==="
+	cd ./tests/; $(CPP) $(FLAGS) test-forbidden-keywords.cpp -o ../build/test-forbidden-keywords
+	
 build/play: ./tests/play.cpp $(LIB_SOURCE)
 	@echo "=== Building ==="
 	cd ./tests/; $(CPP) $(FLAGS) play.cpp -o ../build/play
@@ -52,6 +56,7 @@ build-all: \
 	build/test-list \
 	build/test-procedure \
 	build/test-cin-prompt \
+	build/test-forbidden-keywords \
 	build/play
 	
 	@echo "=== DONE ==="
@@ -79,7 +84,11 @@ run-test-procedure: build/test-procedure
 run-test-cin-prompt: build/test-cin-prompt
 	./build/test-cin-prompt
 	
+run-test-forbidden-keywords: build/test-forbidden-keywords
+	./build/test-forbidden-keywords
+	
 run-play-cli: build/play
 	./build/play
 	scrapec --json project.json
 	scrape project.scrape
+	

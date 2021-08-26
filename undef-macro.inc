@@ -23,5 +23,22 @@
 #undef continue
 #undef break
 
+#undef __procedure_arg_proccode
+#undef __procedure_arg_id
+#undef __procedure_arg_id_quoted
+#undef __procedure_arg_name
+#undef __procedure_arg_default
+
+#undef __procedure_arg_lambda_arg
+#undef __procedure_arg_lambda_passing_arg
+
+#undef __procedure_arg_call_arg
+#undef __procedure_arg_call_check
+#undef __procedure_arg_call_mount
+    
+#undef __procedure_arg_init_block    
+
+#undef procedure
+
 // vim: filetype=cpp
 

@@ -99,10 +99,10 @@ using namespace CppScratchGenerator;
         
 #define while(condition) repeat_until(!(condition))
 
-#define return assert(("return is not supported in CppScratchGenerator", false))
-#define continue assert(("continue is not supported in CppScratchGenerator", false))
-#define break assert(("break is not supported in CppScratchGenerator", false))
-#define do assert(("do is not supported in CppScratchGenerator", false))
+#define do          CppScratchGenerator::throw_if(true, std::logic_error("`do` keyword is not supported in CppScratchGenerator"))
+#define return      CppScratchGenerator::throw_if(true, std::logic_error("`return` keyword is not supported in CppScratchGenerator"))
+#define continue    CppScratchGenerator::throw_if(true, std::logic_error("`continue` keyword is not supported in CppScratchGenerator"))
+#define break       CppScratchGenerator::throw_if(true, std::logic_error("`break` keyword is not supported in CppScratchGenerator"))
 
 
 #define __procedure_arg_proccode(_, x) " %s"
