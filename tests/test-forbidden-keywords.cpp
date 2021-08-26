@@ -25,8 +25,9 @@ void test_continue() {
 #include "../undef-macro.inc"
 }
 
-int main() {
-    ofstream out("project.json");
+int main(int argc, char** argv) {
+    std::string out_dir = argc <= 1 ? "." : argv[1];
+    ofstream out((out_dir + "/project.json").c_str());
     for (auto func: {test_do, test_return, test_break, test_continue}) {
         try {
             func();

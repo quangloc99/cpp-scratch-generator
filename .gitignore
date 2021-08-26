@@ -1,4 +1,5 @@
 build/
+out/
 *.sb3
 *.zip
 *.json

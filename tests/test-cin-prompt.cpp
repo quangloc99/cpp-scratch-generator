@@ -26,12 +26,14 @@ void gen_to_file(const std::string& json_fname, const std::string& zip_fname) {
     system("rm project.json");
 }
 
-int main() {
-    gen_to_file("default-cin-prompt.json", "default-cin-prompt.sb3");
+int main(int argc, char** argv) {
+    std::string out_folder = argc == 1 ? "." : argv[1];
+    out_folder += "/";
+    gen_to_file(out_folder + "default-cin-prompt.json", out_folder + "default-cin-prompt.sb3");
     CppScratchGenerator::FakeIstream::prompt_format = "Enter %s please! "; 
-    gen_to_file("cin-prompt-polite.json", "cin-prompt-polite.sb3"); 
+    gen_to_file(out_folder + "cin-prompt-polite.json", out_folder + "cin-prompt-polite.sb3"); 
     CppScratchGenerator::FakeIstream::prompt_format = "read_token"; 
-    gen_to_file("cin-prompt_read_token.json", "default-cin_read_token.sb3"); 
+    gen_to_file(out_folder + "cin-prompt_read_token.json", out_folder + "default-cin_read_token.sb3"); 
     return 0;
 }
 
