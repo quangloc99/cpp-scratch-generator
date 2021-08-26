@@ -36,7 +36,25 @@ build/test-list: ./tests/test-list.cpp $(LIB_SOURCE)
 build/test-procedure: ./tests/test-procedure.cpp $(LIB_SOURCE)
 	@echo "=== Building ==="
 	cd ./tests/; $(CPP) $(FLAGS) test-procedure.cpp -o ../build/test-procedure
-
+	
+build/test-cin-prompt: ./tests/test-cin-prompt.cpp $(LIB_SOURCE)
+	@echo "=== Building ==="
+	cd ./tests/; $(CPP) $(FLAGS) test-cin-prompt.cpp -o ../build/test-cin-prompt
+	
+build/play: ./tests/play.cpp $(LIB_SOURCE)
+	@echo "=== Building ==="
+	cd ./tests/; $(CPP) $(FLAGS) play.cpp -o ../build/play
+	
+build-all: \
+	build/boilerplate \
+	build/test-operators \
+	build/test-control \
+	build/test-list \
+	build/test-procedure \
+	build/test-cin-prompt \
+	build/play
+	
+	@echo "=== DONE ==="
 
 run-test-operators: build/test-operators
 	@echo "=== Running ==="
@@ -57,3 +75,11 @@ run-test-procedure: build/test-procedure
 	@echo "=== Running ==="
 	./build/test-procedure
 	make zip-temp
+	
+run-test-cin-prompt: build/test-cin-prompt
+	./build/test-cin-prompt
+	
+run-play-cli: build/play
+	./build/play
+	scrapec --json project.json
+	scrape project.scrape

@@ -7,16 +7,17 @@
 // it should be ok to link.
 
 #include <cassert>
-#include <iostream>
 #include <functional>
-#include <vector>
-#include <set>
-#include <unordered_map>
-#include <string>
-#include <stdexcept>
-#include <sstream>
 #include <iomanip>
 #include <ios>
+#include <iostream>
+#include <memory>
+#include <set>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 
 namespace CppScratchGenerator {
@@ -117,7 +118,17 @@ std::string double_to_string(double x) {
 void throw_if(bool condition, const std::exception& exception) {
     if (condition) throw exception;
 }
-    
+
+// https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+template<typename ... Args>
+std::string string_format( const std::string& format, Args ... args ) {
+    int size_s = std::snprintf( nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
+    if( size_s <= 0 ){ throw std::runtime_error( "Error during formatting." ); }
+    auto size = static_cast<size_t>( size_s );
+    std::unique_ptr<char[]> buf(new char[size]);
+    std::snprintf( buf.get(), size, format.c_str(), args ... );
+    return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
+}   
     
     
 /**
@@ -1331,15 +1342,17 @@ public:
 
 
 struct FakeIstream {
-    static bool prompt;
+    static std::string prompt_format;
 };
 
-bool FakeIstream::prompt = true;
+std::string FakeIstream::prompt_format = "%s = ?";
 
 // magic reading operator
 FakeIstream& operator>>(FakeIstream& cin, VariableHolder& var) {
     BlockHolder(Opcode::Sensing::AskAndWait, {
-            {"QUESTION", BlockInput::string(FakeIstream::prompt ?  var.key() + " = ?" : "")}
+            {"QUESTION", BlockInput::string(
+                    string_format(FakeIstream::prompt_format.c_str(), var.key().c_str())
+            )}
     }, {
     });
     BlockHolder answer(Opcode::Sensing::Answer, Block::Type::SCALAR_EXPRESSION, false, false);
