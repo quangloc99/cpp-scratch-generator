@@ -1,4 +1,4 @@
 build/
 *.sb3
 *.zip
-/project.json
+*.json
