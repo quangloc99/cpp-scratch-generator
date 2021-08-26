@@ -415,6 +415,161 @@ public:
 using BlockField = std::vector<std::string>;
 
 
+class Operand {
+public:
+    // enum InnerType { 
+        // NUMBER_LITERAL, 
+        // STRING_LITERAL, 
+        // VARIABLE, 
+        // BLOCK, 
+    // }; 
+    
+    enum ValueType {
+        SCALAR, BOOLEAN
+    };
+    //  
+    // InnerType inner_type; 
+    // union { 
+        // std::string string_value; 
+        // double number_value; 
+        // VariableHolder variable_holder; 
+        // BlockHolder block_holder; 
+    // }; 
+    
+    // Operand(const char* s)  
+        // : inner_type(InnerType::STRING_LITERAL)  
+        // , string_value(s)  
+    // { }  
+    // Operand(const std::string& s) 
+        // : inner_type(InnerType::STRING_LITERAL) 
+        // , string_value(s) 
+    // { } 
+    // Operand(char ch): Operand(std::string(1, ch)) {} 
+    // Operand(double num) 
+        // : inner_type(InnerType::NUMBER_LITERAL) 
+        // , number_value(num) 
+    // { } 
+    // Operand(int num) 
+        // : inner_type(InnerType::NUMBER_LITERAL) 
+        // , number_value(num) 
+    // { } 
+    // Operand(long long num) 
+        // : inner_type(InnerType::NUMBER_LITERAL) 
+        // , number_value((double)num) 
+    // { } 
+    // Operand(const VariableHolder& u) 
+        // : inner_type(InnerType::VARIABLE) 
+        // , variable_holder(u) 
+    // { } 
+    // Operand(const BlockHolder& u) 
+        // : inner_type(InnerType::BLOCK) 
+        // , block_holder(u) 
+    // { } 
+    // Operand(const Operand& operand) 
+        // : inner_type(operand.inner_type) 
+    // { 
+        // switch (inner_type) { 
+            // case NUMBER_LITERAL: number_value = operand.number_value; break; 
+            // case STRING_LITERAL: string_value = operand.string_value; break; 
+            // case VARIABLE: variable_holder = operand.variable_holder; break; 
+            // case BLOCK: block_holder = operand.block_holder; break; 
+        // } 
+    // } 
+    // ~Operand() { 
+        // switch (inner_type) { 
+            // case NUMBER_LITERAL: break; 
+            // case STRING_LITERAL: string_value.~basic_string(); break; 
+            // case VARIABLE: variable_holder.~VariableHolder(); break; 
+            // case BLOCK: block_holder.~BlockHolder(); break; 
+        // } 
+    // } 
+    virtual ValueType get_value_type() const = 0;
+    // { 
+        // if (inner_type == STRING_LITERAL || inner_type == NUMBER_LITERAL || inner_type == VARIABLE) { 
+            // return ValueType::SCALAR; 
+        // } 
+        // if (block_holder->type == Block::Type::SCALAR_EXPRESSION) { 
+            // return ValueType::SCALAR; 
+        // } 
+        // if (block_holder->type == Block::Type::BOOLEAN_EXPRESSION) { 
+            // return ValueType::BOOLEAN; 
+        // } 
+        // throw std::logic_error("Operand must be either scalar or boolean"); 
+    // } 
+    virtual BlockInput to_input() const = 0;
+    // { 
+        // switch (inner_type) { 
+            // case NUMBER_LITERAL: return BlockInput::number(number_value);  
+            // case STRING_LITERAL: return BlockInput::string(string_value);  
+            // case VARIABLE: return BlockInput::variable(variable_holder.key()); 
+            // case BLOCK: return BlockInput::id(block_holder.id()); 
+        // } 
+        // assert(false); 
+    // } 
+};
+
+
+class NumberLiteralOperand: public Operand {
+public:
+    double value;
+    NumberLiteralOperand(double num): value(num) {}
+    NumberLiteralOperand(int num): value((double)num) {}
+    NumberLiteralOperand(long long num): value((double)num) {}
+        
+    virtual ValueType get_value_type() const override {
+        return Operand::ValueType::SCALAR;
+    }
+    
+    virtual BlockInput to_input() const override {
+        return BlockInput::number(value);
+    }
+};
+
+class StringLiteralOperand: public Operand {
+public:
+    std::string value;
+    StringLiteralOperand(const std::string& s): value(s) {}
+    StringLiteralOperand(const char* s): value(s) {}
+    StringLiteralOperand(char ch): value(1, ch) {}
+    
+    virtual ValueType get_value_type() const override {
+        return Operand::ValueType::SCALAR;
+    }
+    
+    virtual BlockInput to_input() const override {
+        return BlockInput::string(value);
+    }
+};
+
+
+// There is "currently" no way to call a converting constructor, follows by
+// an upcast. In order to archive that effect, this class will be used
+class OperandWrapper {
+    Operand::ValueType value_type;
+    BlockInput block_input;
+public:
+    OperandWrapper(const Operand& other)
+        : value_type(other.get_value_type()), block_input(other.to_input()) {}
+    
+    // for number literal
+    OperandWrapper(int num): OperandWrapper(NumberLiteralOperand(num)) {}
+    OperandWrapper(long long num): OperandWrapper(NumberLiteralOperand(num)) {}
+    OperandWrapper(double num): OperandWrapper(NumberLiteralOperand(num)) {}
+    
+    // for string literal
+    OperandWrapper(const char* s): OperandWrapper(StringLiteralOperand(s)) {}
+    OperandWrapper(const std::string& s): OperandWrapper(StringLiteralOperand(s)) {}
+    OperandWrapper(char ch): OperandWrapper(StringLiteralOperand(ch)) {}
+    
+    inline Operand::ValueType get_value_type() const {
+        return value_type;
+    }
+    
+    inline BlockInput to_input() const {
+        return block_input;
+    }
+};
+
 
 class Block {
 public:
@@ -498,7 +653,7 @@ public:
 
 AutoGeneratedNamedMap<Block> __block_map("block_");
 
-class BlockHolder {
+class BlockHolder: public Operand {
     AutoGeneratedNamedMap<Block>::iterator it;
 public:
     static std::vector<BlockHolder> block_holder_stack;
@@ -583,6 +738,19 @@ public:
     Block* operator->() const { 
         return &it->second; 
     } 
+    
+    virtual ValueType get_value_type() const override {
+        if ((*this)->type == Block::Type::SCALAR_EXPRESSION) {
+            return ValueType::SCALAR;
+        }
+        // if ((*this)->type == Block::Type::BOOLEAN_EXPRESSION) { 
+        return ValueType::BOOLEAN;
+        // } 
+    }
+    
+    virtual BlockInput to_input() const override {
+        return BlockInput::id(id());
+    }
 };
 
 std::vector<BlockHolder> BlockHolder::block_holder_stack;
@@ -608,9 +776,7 @@ public:
 AutoGeneratedNamedMap<Variable> __variable_map("var_");
 
 
-class Operand;
-
-class VariableHolder {
+class VariableHolder: public Operand {
     AutoGeneratedNamedMap<Variable>::iterator it; 
 public:  
     inline VariableHolder(const std::string& name_, const std::string& value_) 
@@ -749,106 +915,23 @@ public:
         });
     }
     
-    void operator+=(const Operand& operand);
-    void operator-=(const Operand& operand);
+    void operator+=(const OperandWrapper& operand);
+    void operator-=(const OperandWrapper& operand);
+    
+    virtual ValueType get_value_type() const override {
+        return ValueType::SCALAR;
+    }
+    
+    virtual BlockInput to_input() const override {
+        return BlockInput::variable(key());
+    }
 }; 
 
 
 
-class Operand {
-public:
-    enum InnerType {
-        NUMBER_LITERAL,
-        STRING_LITERAL,
-        VARIABLE,
-        BLOCK,
-    };
-    
-    enum ValueType {
-        SCALAR, BOOLEAN
-    };
-    
-    InnerType inner_type;
-    union {
-        std::string string_value;
-        double number_value;
-        VariableHolder variable_holder;
-        BlockHolder block_holder;
-    };
-    
-    Operand(const char* s) 
-        : inner_type(InnerType::STRING_LITERAL) 
-        , string_value(s) 
-    { } 
-    Operand(const std::string& s)
-        : inner_type(InnerType::STRING_LITERAL)
-        , string_value(s)
-    { }
-    Operand(char ch): Operand(std::string(1, ch)) {}
-    Operand(double num)
-        : inner_type(InnerType::NUMBER_LITERAL)
-        , number_value(num)
-    { }
-    Operand(int num)
-        : inner_type(InnerType::NUMBER_LITERAL)
-        , number_value(num)
-    { }
-    Operand(long long num)
-        : inner_type(InnerType::NUMBER_LITERAL)
-        , number_value((double)num)
-    { }
-    Operand(const VariableHolder& u)
-        : inner_type(InnerType::VARIABLE)
-        , variable_holder(u)
-    { }
-    Operand(const BlockHolder& u)
-        : inner_type(InnerType::BLOCK)
-        , block_holder(u)
-    { }
-    Operand(const Operand& operand)
-        : inner_type(operand.inner_type)
-    {
-        switch (inner_type) {
-            case NUMBER_LITERAL: number_value = operand.number_value; break;
-            case STRING_LITERAL: string_value = operand.string_value; break;
-            case VARIABLE: variable_holder = operand.variable_holder; break;
-            case BLOCK: block_holder = operand.block_holder; break;
-        }
-    }
-    ~Operand() {
-        switch (inner_type) {
-            case NUMBER_LITERAL: break;
-            case STRING_LITERAL: string_value.~basic_string(); break;
-            case VARIABLE: variable_holder.~VariableHolder(); break;
-            case BLOCK: block_holder.~BlockHolder(); break;
-        }
-    }
-    ValueType get_value_type() const {
-        if (inner_type == STRING_LITERAL || inner_type == NUMBER_LITERAL || inner_type == VARIABLE) {
-            return ValueType::SCALAR;
-        }
-        if (block_holder->type == Block::Type::SCALAR_EXPRESSION) {
-            return ValueType::SCALAR;
-        }
-        if (block_holder->type == Block::Type::BOOLEAN_EXPRESSION) {
-            return ValueType::BOOLEAN;
-        }
-        throw std::logic_error("Operand must be either scalar or boolean");
-    }
-    BlockInput to_input() const {
-        switch (inner_type) {
-            case NUMBER_LITERAL: return BlockInput::number(number_value);
-            case STRING_LITERAL: return BlockInput::string(string_value);
-            case VARIABLE: return BlockInput::variable(variable_holder.key());
-            case BLOCK: return BlockInput::id(block_holder.id());
-        }
-        assert(false);
-    }
-};
 
 
-
-BlockHolder operator+(const Operand& lhs, const Operand& rhs) {                
+BlockHolder operator+(const OperandWrapper& lhs, const OperandWrapper& rhs) {                
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
@@ -859,7 +942,7 @@ BlockHolder operator+(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
-BlockHolder operator-(const Operand& lhs, const Operand& rhs) {                
+BlockHolder operator-(const OperandWrapper& lhs, const OperandWrapper& rhs) {                
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
@@ -870,7 +953,7 @@ BlockHolder operator-(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
-BlockHolder operator*(const Operand& lhs, const Operand& rhs) {                
+BlockHolder operator*(const OperandWrapper& lhs, const OperandWrapper& rhs) {                
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
@@ -881,7 +964,7 @@ BlockHolder operator*(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
-BlockHolder operator/(const Operand& lhs, const Operand& rhs) {                
+BlockHolder operator/(const OperandWrapper& lhs, const OperandWrapper& rhs) {                
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
@@ -892,7 +975,7 @@ BlockHolder operator/(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
-BlockHolder operator%(const Operand& lhs, const Operand& rhs) {                
+BlockHolder operator%(const OperandWrapper& lhs, const OperandWrapper& rhs) {                
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
@@ -903,7 +986,7 @@ BlockHolder operator%(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
-void VariableHolder::operator+=(const Operand& operand) {
+void VariableHolder::operator+=(const OperandWrapper& operand) {
     BlockHolder(Opcode::Data::ChangeVariableBy, {
         {"VALUE", operand.to_input()},
     }, {
@@ -911,11 +994,11 @@ void VariableHolder::operator+=(const Operand& operand) {
     });
 }
 
-void VariableHolder::operator-=(const Operand& operand) {
-    operator+=(Operand(0) - operand);
+void VariableHolder::operator-=(const OperandWrapper& operand) {
+    operator+=(NumberLiteralOperand(0) - operand);
 }
 
-BlockHolder random(const Operand& lhs, const Operand& rhs) {
+BlockHolder random(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands in function random must be a scalar expression"); 
@@ -926,7 +1009,7 @@ BlockHolder random(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
-BlockHolder letter_of(const Operand& lhs, const Operand& rhs) {
+BlockHolder letter_of(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands in function letter of must be a scalar expression"); 
@@ -937,7 +1020,7 @@ BlockHolder letter_of(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
-BlockHolder length(const Operand& value) {
+BlockHolder length(const OperandWrapper& value) {
     if (value.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands in function length must be a scalar expression"); 
     }
@@ -946,7 +1029,7 @@ BlockHolder length(const Operand& value) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
-BlockHolder contains(const Operand& lhs, const Operand& rhs) {
+BlockHolder contains(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands in function contains must be a scalar expression"); 
@@ -957,7 +1040,7 @@ BlockHolder contains(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
 }
 
-BlockHolder round(const Operand& value) {
+BlockHolder round(const OperandWrapper& value) {
     if (value.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands in function round must be a scalar expression"); 
     }
@@ -966,7 +1049,7 @@ BlockHolder round(const Operand& value) {
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
-BlockHolder operator<(const Operand& lhs, const Operand& rhs) {
+BlockHolder operator<(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
@@ -977,7 +1060,7 @@ BlockHolder operator<(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
 }
 
-BlockHolder operator>(const Operand& lhs, const Operand& rhs) {
+BlockHolder operator>(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
@@ -988,7 +1071,7 @@ BlockHolder operator>(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
 }
 
-BlockHolder operator==(const Operand& lhs, const Operand& rhs) {
+BlockHolder operator==(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
@@ -999,7 +1082,7 @@ BlockHolder operator==(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
 }
 
-BlockHolder operator!(const Operand& value) {
+BlockHolder operator!(const OperandWrapper& value) {
     if (value.get_value_type() != Operand::ValueType::BOOLEAN) {
         throw std::logic_error("operands of arithmetic operation must be a scalar expression"); 
     }
@@ -1008,18 +1091,18 @@ BlockHolder operator!(const Operand& value) {
     }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
 }
 
-BlockHolder operator!=(const Operand& lhs, const Operand& rhs) {
+BlockHolder operator!=(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     return !(lhs == rhs);
 }
-BlockHolder operator<=(const Operand& lhs, const Operand& rhs) {
+BlockHolder operator<=(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     return !(lhs > rhs);
 }
 
-BlockHolder operator>=(const Operand& lhs, const Operand& rhs) {
+BlockHolder operator>=(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     return !(lhs < rhs);
 }
 
-BlockHolder operator||(const Operand& lhs, const Operand& rhs) {
+BlockHolder operator||(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::BOOLEAN ||
         rhs.get_value_type() != Operand::ValueType::BOOLEAN) {
         throw std::logic_error("operands of a logic operation must be a boolean expression"); 
@@ -1030,7 +1113,7 @@ BlockHolder operator||(const Operand& lhs, const Operand& rhs) {
     }, {}, Block::Type::BOOLEAN_EXPRESSION, false, false);
 }
 
-BlockHolder operator&&(const Operand& lhs, const Operand& rhs) {
+BlockHolder operator&&(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::BOOLEAN ||
         rhs.get_value_type() != Operand::ValueType::BOOLEAN) {
         throw std::logic_error("operands of a logic operation must be a boolean expression"); 
@@ -1042,7 +1125,7 @@ BlockHolder operator&&(const Operand& lhs, const Operand& rhs) {
 }
 
 #define DEFINE_MATHOP_FUNCTION(func_name, op_name) \
-    BlockHolder func_name(const Operand& value) {                                                       \
+    BlockHolder func_name(const OperandWrapper& value) {                                                       \
         if (value.get_value_type() != Operand::ValueType::SCALAR) {                                     \
             throw std::logic_error("operands in mathop function must be a scalar expression");          \
         }                                                                                               \
@@ -1072,7 +1155,7 @@ DEFINE_MATHOP_FUNCTION(exp10, Opcode::Operator::MathOp::EXP10)
     
     
 // join function with additional functionality
-BlockHolder join(const Operand& lhs, const Operand& rhs) {
+BlockHolder join(const OperandWrapper& lhs, const OperandWrapper& rhs) {
     if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
         rhs.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands in function join must be a scalar expression"); 
@@ -1084,13 +1167,13 @@ BlockHolder join(const Operand& lhs, const Operand& rhs) {
 }
 
 template<typename... T>
-inline BlockHolder join(const Operand& u, const Operand& v, const T&... rest) {
+inline BlockHolder join(const OperandWrapper& u, const OperandWrapper& v, const T&... rest) {
     if (u.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("operands in function join must be a scalar expression"); 
     }
     return BlockHolder(Opcode::Operator::Join, {
             {"STRING1", u.to_input()},
-            {"STRING2", Operand(join(v, rest...)).to_input()},
+            {"STRING2", join(v, rest...).to_input()},
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
@@ -1109,7 +1192,7 @@ public:
 class IfBlockGenerator: public ControlBlockGenerator {
     BlockHolder if_block;
 public:
-    IfBlockGenerator(const Operand& condition)
+    IfBlockGenerator(const OperandWrapper& condition)
         : ControlBlockGenerator()
         , if_block(Opcode::Control::If, {
             {"CONDITION", condition.to_input()}
@@ -1144,7 +1227,7 @@ public:
 class RepeatBlockGenerator: public ControlBlockGenerator {
     BlockHolder repeat_block;
 public:
-    RepeatBlockGenerator(const Operand& times)
+    RepeatBlockGenerator(const OperandWrapper& times)
         : ControlBlockGenerator()
         , repeat_block(Opcode::Control::Repeat, {
             {"TIMES", times.to_input()}
@@ -1163,7 +1246,7 @@ public:
 class RepeatUntilBlockGenerator : public ControlBlockGenerator {
     BlockHolder repeat_until_block;
 public:
-    RepeatUntilBlockGenerator(const Operand& condition)
+    RepeatUntilBlockGenerator(const OperandWrapper& condition)
         : ControlBlockGenerator()
         , repeat_until_block(Opcode::Control::RepeatUntil, {
             {"CONDITION", condition.to_input()}
@@ -1209,8 +1292,8 @@ class ListHolder {
 public:  
     struct IndexedElement {
         const ListHolder& the_list;
-        const Operand& index;
-        IndexedElement(const ListHolder& the_list_, const Operand& index_)
+        const OperandWrapper& index;
+        IndexedElement(const ListHolder& the_list_, const OperandWrapper& index_)
             : the_list(the_list_) 
             , index(index_)
         {
@@ -1223,7 +1306,7 @@ public:
         // IndexedElement& operator=(const IndexedElement&) = delete;  
         IndexedElement(IndexedElement&&) = default;
         
-        void operator=(const Operand& op) {
+        void operator=(const OperandWrapper& op) {
             if (op.get_value_type() != Operand::ValueType::SCALAR) {
                 throw std::logic_error("List item can only be replaced with a scalar");
             }
@@ -1232,13 +1315,13 @@ public:
                     {"ITEM", op.to_input()},
             }, {{"LIST", the_list.to_field()}});
         }
-        operator Operand() {
+        operator OperandWrapper() const {
             return BlockHolder(Opcode::Data::ItemOfList, {
                     {"INDEX", index.to_input()},
             }, {{"LIST", the_list.to_field()}}, Block::Type::SCALAR_EXPRESSION, false, false);
         }
-        void operator=(IndexedElement other) {
-            operator=(static_cast<Operand>(other));
+        void operator=(const IndexedElement& other) {
+            operator=(static_cast<OperandWrapper>(other));
         }
     };
     
@@ -1283,7 +1366,7 @@ public:
         return {key(), key()};  // the name and the id. In this code, they are the same.
     }
     
-    void push_back(const Operand& op) {
+    void push_back(const OperandWrapper& op) {
         if (op.get_value_type() != Operand::ValueType::SCALAR) {
             throw std::logic_error("List::push_back only accept scalar expression");
         }
@@ -1294,7 +1377,7 @@ public:
         });
     }
     
-    void erase_at(const Operand& op) {
+    void erase_at(const OperandWrapper& op) {
         if (op.get_value_type() != Operand::ValueType::SCALAR) {
             throw std::logic_error("List::erase_at only accept scalar expression");
         }
@@ -1309,7 +1392,7 @@ public:
         BlockHolder(Opcode::Data::DeleteAllOfList, {}, {{"LIST", to_field()}});
     }
     
-    void insert_at(const Operand& index, const Operand& item) {
+    void insert_at(const OperandWrapper& index, const OperandWrapper& item) {
         if (index.get_value_type() != Operand::ValueType::SCALAR) {
             throw std::logic_error("List::insert_at only accepts scalar index");
         }
@@ -1322,7 +1405,7 @@ public:
         }, {{"LIST", to_field()}});
     }
     
-    BlockHolder first_index_of(const Operand& item) {
+    BlockHolder first_index_of(const OperandWrapper& item) {
         if (item.get_value_type() != Operand::ValueType::SCALAR) {
             throw std::logic_error("List::count only accepts scalar item");
         }
@@ -1331,7 +1414,7 @@ public:
         }, {{"LIST", to_field()}}, Block::Type::SCALAR_EXPRESSION, false, false);
     }
     
-    BlockHolder contains(const Operand& item) {
+    BlockHolder contains(const OperandWrapper& item) {
         if (item.get_value_type() != Operand::ValueType::SCALAR) {
             throw std::logic_error("List::contains only accepts scalar item");
         }
@@ -1345,7 +1428,7 @@ public:
             {{"LIST", to_field()}}, Block::Type::SCALAR_EXPRESSION, false, false);
     }
     
-    IndexedElement operator[](const Operand& index) {
+    IndexedElement operator[](const OperandWrapper& index) {
         return IndexedElement(*this, index);
     }
 }; 
@@ -1357,11 +1440,9 @@ class ProcedureArgument {
     std::string name;
 public:
     ProcedureArgument(const std::string name_): name(name_) {}
-    operator Operand() const {
-        return Operand(
-                BlockHolder(Opcode::Procedures::ScalarArgumentReporter, {
-                }, {{"VALUE", {name}}}, Block::Type::SCALAR_EXPRESSION, false, false)
-        );
+    operator OperandWrapper() const {
+        return BlockHolder(Opcode::Procedures::ScalarArgumentReporter, {
+        }, {{"VALUE", {name}}}, Block::Type::SCALAR_EXPRESSION, false, false);
     }
 };
 
@@ -1398,7 +1479,7 @@ FakeIstream& operator>>(FakeIstream& cin, VariableHolder& var) {
 struct FakeOstream {
 };
 
-FakeOstream& operator<<(FakeOstream& cout, const Operand& op) {
+FakeOstream& operator<<(FakeOstream& cout, const OperandWrapper& op) {
     if (op.get_value_type() != Operand::ValueType::SCALAR) {
         throw std::logic_error("Only scalar can be printed");
     }

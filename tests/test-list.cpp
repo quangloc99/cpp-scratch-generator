@@ -53,6 +53,8 @@ void my_program() {
     a[1] = 1 + 2;
     a[1] = b[2];
     b[2] = a.size();
+    a[x + y] = 100;
+    a[x * x] = 434;
     
 #include "../undef-macro.inc"
 }

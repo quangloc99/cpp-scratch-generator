@@ -114,7 +114,7 @@ using namespace CppScratchGenerator;
 #define __procedure_arg_lambda_arg(_, x) const CppScratchGenerator::ProcedureArgument& x
 #define __procedure_arg_lambda_passing_arg(_, x) CppScratchGenerator::ProcedureArgument(#x)
 
-#define __procedure_arg_call_arg(_, x) const CppScratchGenerator::Operand& x
+#define __procedure_arg_call_arg(_, x) const CppScratchGenerator::OperandWrapper& x
 #define __procedure_arg_call_check(_, x) \
     CppScratchGenerator::throw_if(                                              \
         x.get_value_type() != CppScratchGenerator::Operand::ValueType::SCALAR,  \
