@@ -15,6 +15,9 @@ void my_program() {
     a = b; 
     a = c + b; 
     
+    auto x = a + b;
+    dec_var(y, a * b);
+    
     cin >> a >> b >> c;
     
     a += b;
