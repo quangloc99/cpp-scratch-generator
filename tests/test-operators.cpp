@@ -80,7 +80,7 @@ void my_program() {
     gen_func_call_unary(round);
     gen_func_call_unary(abs);
     gen_func_call_unary(floor);
-    gen_func_call_unary(ceiling);
+    gen_func_call_unary(ceil);
     gen_func_call_unary(sqrt);
     gen_func_call_unary(sin);
     gen_func_call_unary(cos);

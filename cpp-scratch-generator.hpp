@@ -1042,7 +1042,7 @@ BlockHolder operator&&(const Operand& lhs, const Operand& rhs) {
 
 DEFINE_MATHOP_FUNCTION(abs, Opcode::Operator::MathOp::ABS)
 DEFINE_MATHOP_FUNCTION(floor, Opcode::Operator::MathOp::FLOOR)
-DEFINE_MATHOP_FUNCTION(ceiling, Opcode::Operator::MathOp::CEILING)
+DEFINE_MATHOP_FUNCTION(ceil, Opcode::Operator::MathOp::CEILING)
 DEFINE_MATHOP_FUNCTION(sqrt, Opcode::Operator::MathOp::SQRT)
 DEFINE_MATHOP_FUNCTION(sin, Opcode::Operator::MathOp::SIN)
 DEFINE_MATHOP_FUNCTION(cos, Opcode::Operator::MathOp::COS)
