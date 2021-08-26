@@ -417,95 +417,11 @@ using BlockField = std::vector<std::string>;
 
 class Operand {
 public:
-    // enum InnerType { 
-        // NUMBER_LITERAL, 
-        // STRING_LITERAL, 
-        // VARIABLE, 
-        // BLOCK, 
-    // }; 
-    
     enum ValueType {
         SCALAR, BOOLEAN
     };
-    //  
-    // InnerType inner_type; 
-    // union { 
-        // std::string string_value; 
-        // double number_value; 
-        // VariableHolder variable_holder; 
-        // BlockHolder block_holder; 
-    // }; 
-    
-    // Operand(const char* s)  
-        // : inner_type(InnerType::STRING_LITERAL)  
-        // , string_value(s)  
-    // { }  
-    // Operand(const std::string& s) 
-        // : inner_type(InnerType::STRING_LITERAL) 
-        // , string_value(s) 
-    // { } 
-    // Operand(char ch): Operand(std::string(1, ch)) {} 
-    // Operand(double num) 
-        // : inner_type(InnerType::NUMBER_LITERAL) 
-        // , number_value(num) 
-    // { } 
-    // Operand(int num) 
-        // : inner_type(InnerType::NUMBER_LITERAL) 
-        // , number_value(num) 
-    // { } 
-    // Operand(long long num) 
-        // : inner_type(InnerType::NUMBER_LITERAL) 
-        // , number_value((double)num) 
-    // { } 
-    // Operand(const VariableHolder& u) 
-        // : inner_type(InnerType::VARIABLE) 
-        // , variable_holder(u) 
-    // { } 
-    // Operand(const BlockHolder& u) 
-        // : inner_type(InnerType::BLOCK) 
-        // , block_holder(u) 
-    // { } 
-    // Operand(const Operand& operand) 
-        // : inner_type(operand.inner_type) 
-    // { 
-        // switch (inner_type) { 
-            // case NUMBER_LITERAL: number_value = operand.number_value; break; 
-            // case STRING_LITERAL: string_value = operand.string_value; break; 
-            // case VARIABLE: variable_holder = operand.variable_holder; break; 
-            // case BLOCK: block_holder = operand.block_holder; break; 
-        // } 
-    // } 
-    // ~Operand() { 
-        // switch (inner_type) { 
-            // case NUMBER_LITERAL: break; 
-            // case STRING_LITERAL: string_value.~basic_string(); break; 
-            // case VARIABLE: variable_holder.~VariableHolder(); break; 
-            // case BLOCK: block_holder.~BlockHolder(); break; 
-        // } 
-    // } 
     virtual ValueType get_value_type() const = 0;
-    // { 
-        // if (inner_type == STRING_LITERAL || inner_type == NUMBER_LITERAL || inner_type == VARIABLE) { 
-            // return ValueType::SCALAR; 
-        // } 
-        // if (block_holder->type == Block::Type::SCALAR_EXPRESSION) { 
-            // return ValueType::SCALAR; 
-        // } 
-        // if (block_holder->type == Block::Type::BOOLEAN_EXPRESSION) { 
-            // return ValueType::BOOLEAN; 
-        // } 
-        // throw std::logic_error("Operand must be either scalar or boolean"); 
-    // } 
     virtual BlockInput to_input() const = 0;
-    // { 
-        // switch (inner_type) { 
-            // case NUMBER_LITERAL: return BlockInput::number(number_value);  
-            // case STRING_LITERAL: return BlockInput::string(string_value);  
-            // case VARIABLE: return BlockInput::variable(variable_holder.key()); 
-            // case BLOCK: return BlockInput::id(block_holder.id()); 
-        // } 
-        // assert(false); 
-    // } 
 };
 
 
