@@ -97,6 +97,15 @@ void my_program() {
     gen_func_call_unary(exp10);
     
     cout << a << b << c;
+    
+    
+    // test join for multiple argument
+    cout << join(a, b);
+    cout << join(a, b, c); 
+    cout << join(1, 2, 3); 
+    cout << join("x", "y", "z"); 
+    cout << join(a, " ", b, " ", c, " "); 
+    cout << join(a, ' ', b, ' ', c, ' '); 
 #include "../undef-macro.inc"
 }
 

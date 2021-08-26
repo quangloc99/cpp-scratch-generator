@@ -784,6 +784,7 @@ public:
         : inner_type(InnerType::STRING_LITERAL)
         , string_value(s)
     { }
+    Operand(char ch): Operand(std::string(1, ch)) {}
     Operand(double num)
         : inner_type(InnerType::NUMBER_LITERAL)
         , number_value(num)
@@ -922,17 +923,6 @@ BlockHolder random(const Operand& lhs, const Operand& rhs) {
     return BlockHolder(Opcode::Operator::Random, {
             {"FROM", lhs.to_input()},
             {"TO", rhs.to_input()},
-    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
-}
-
-BlockHolder join(const Operand& lhs, const Operand& rhs) {
-    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
-        rhs.get_value_type() != Operand::ValueType::SCALAR) {
-        throw std::logic_error("operands in function join must be a scalar expression"); 
-    }
-    return BlockHolder(Opcode::Operator::Join, {
-            {"STRING1", lhs.to_input()},
-            {"STRING2", rhs.to_input()},
     }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
 }
 
@@ -1079,6 +1069,30 @@ DEFINE_MATHOP_FUNCTION(expe, Opcode::Operator::MathOp::EXPE)
 DEFINE_MATHOP_FUNCTION(exp10, Opcode::Operator::MathOp::EXP10)
     
 #undef DEFINE_MATHOP_FUNCTION
+    
+    
+// join function with additional functionality
+BlockHolder join(const Operand& lhs, const Operand& rhs) {
+    if (lhs.get_value_type() != Operand::ValueType::SCALAR ||
+        rhs.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands in function join must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Join, {
+            {"STRING1", lhs.to_input()},
+            {"STRING2", rhs.to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
+
+template<typename... T>
+inline BlockHolder join(const Operand& u, const Operand& v, const T&... rest) {
+    if (u.get_value_type() != Operand::ValueType::SCALAR) {
+        throw std::logic_error("operands in function join must be a scalar expression"); 
+    }
+    return BlockHolder(Opcode::Operator::Join, {
+            {"STRING1", u.to_input()},
+            {"STRING2", Operand(join(v, rest...)).to_input()},
+    }, {}, Block::Type::SCALAR_EXPRESSION, false, false);
+}
 
     
     
