@@ -633,7 +633,7 @@ public:
     } 
     
     inline VariableHolder(): VariableHolder("") {
-        operator=(0.-1);
+        operator=(0.);
     } 
     
     inline VariableHolder(int value_) 
@@ -1331,12 +1331,15 @@ public:
 
 
 struct FakeIstream {
+    static bool prompt;
 };
+
+bool FakeIstream::prompt = true;
 
 // magic reading operator
 FakeIstream& operator>>(FakeIstream& cin, VariableHolder& var) {
     BlockHolder(Opcode::Sensing::AskAndWait, {
-            {"QUESTION", BlockInput::string(var.key() + " = ?")}
+            {"QUESTION", BlockInput::string(FakeIstream::prompt ?  var.key() + " = ?" : "")}
     }, {
     });
     BlockHolder answer(Opcode::Sensing::Answer, Block::Type::SCALAR_EXPRESSION, false, false);
